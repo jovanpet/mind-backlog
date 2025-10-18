@@ -1,12 +1,3 @@
-//
-//  ClarifyProblemView.swift
-//  MindBacklog
-//
-//  Created by Jovan Petrovic on 10/16/25.
-//
-
-import SwiftUI
-
 import SwiftUI
 
 struct ClarifyProblemView: View {
@@ -15,6 +6,7 @@ struct ClarifyProblemView: View {
     @State private var navigateToNextStep = false
     @State private var navigateToBacklogAdded = false
     @State private var selectedOption: Int? = nil
+    @State private var isVisible = false
     
     var body: some View {
         NavigationStack {
@@ -62,7 +54,8 @@ struct ClarifyProblemView: View {
                                 .font(.system(size: 72))
                         }
                         .floatingAnimation()
-                        .fadeInAnimation()
+                        .opacity(isVisible ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.4), value: isVisible)
                         
                         // Problem title
                         VStack(spacing: ModernTheme.Spacing.md) {
@@ -71,23 +64,22 @@ struct ClarifyProblemView: View {
                                 .foregroundColor(ModernTheme.Color.textGray)
                                 .textCase(.uppercase)
                                 .tracking(1.5)
-                                .fadeInAnimation(delay: 0.1)
-                            
-                            Text(problemTitle)
-                                .font(ModernTheme.Font.title)
-                                .foregroundColor(ModernTheme.Color.pureBlack)
-                                .multilineTextAlignment(.center)
-                                .fadeInAnimation(delay: 0.1)
+                                .opacity(isVisible ? 1 : 0)
+                                .offset(y: isVisible ? 0 : 20)
+                                .animation(.easeInOut(duration: 0.4).delay(0.1), value: isVisible)
                             
                             ModernDivider()
                                 .frame(width: 60)
-                                .fadeInAnimation(delay: 0.1)
+                                .opacity(isVisible ? 1 : 0)
+                                .animation(.easeInOut(duration: 0.4).delay(0.1), value: isVisible)
                             
                             Text("Can you solve this\nproblem right now?")
                                 .font(ModernTheme.Font.headline)
                                 .foregroundColor(ModernTheme.Color.darkGray)
                                 .multilineTextAlignment(.center)
-                                .fadeInAnimation(delay: 0.1)
+                                .opacity(isVisible ? 1 : 0)
+                                .offset(y: isVisible ? 0 : 20)
+                                .animation(.easeInOut(duration: 0.4).delay(0.4), value: isVisible)
                         }
                         .padding(.horizontal, ModernTheme.Spacing.xl)
                         
@@ -125,7 +117,9 @@ struct ClarifyProblemView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                             .scaleEffect(selectedOption == 1 ? 1.02 : 1.0)
-                            .fadeInAnimation(delay: 0.1)
+                            .opacity(isVisible ? 1 : 0)
+                            .offset(y: isVisible ? 0 : 20)
+                            .animation(.easeInOut(duration: 0.4).delay(0.5), value: isVisible)
                             
                             Button(action: {
                                 withAnimation(ModernTheme.Animation.spring) {
@@ -159,7 +153,9 @@ struct ClarifyProblemView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                             .scaleEffect(selectedOption == 2 ? 1.02 : 1.0)
-                            .fadeInAnimation(delay: 0.1)
+                            .opacity(isVisible ? 1 : 0)
+                            .offset(y: isVisible ? 0 : 20)
+                            .animation(.easeInOut(duration: 0.4).delay(0.6), value: isVisible)
                         }
                         .padding(.horizontal, ModernTheme.Spacing.xl)
                     }
@@ -175,6 +171,11 @@ struct ClarifyProblemView: View {
             }
             .navigationDestination(isPresented: $navigateToBacklogAdded) {
                 BacklogAddedView(messageType: .cannotSolveNow, problemTitle: problemTitle)
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isVisible = true
+                }
             }
         }
     }

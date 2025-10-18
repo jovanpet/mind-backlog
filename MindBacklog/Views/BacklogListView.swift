@@ -98,74 +98,10 @@ struct BacklogListView: View {
                                             .foregroundColor(ModernTheme.Color.textGray)
                                     }
                                 }
-                                
                                 Spacer()
-                                
-                                // Sort button
-                                Menu {
-                                    ForEach(SortOption.allCases, id: \.self) { option in
-                                        Button(action: {
-                                            withAnimation(ModernTheme.Animation.smooth) {
-                                                sortOption = option
-                                            }
-                                        }) {
-                                            Label(option.rawValue, systemImage: option.icon)
-                                        }
-                                    }
-                                } label: {
-                                    HStack(spacing: ModernTheme.Spacing.xs) {
-                                        Image(systemName: sortOption.icon)
-                                        Text(sortOption.rawValue)
-                                            .font(ModernTheme.Font.caption)
-                                    }
-                                    .padding(.horizontal, ModernTheme.Spacing.sm)
-                                    .padding(.vertical, ModernTheme.Spacing.xs)
-                                    .background(
-                                        Capsule()
-                                            .fill(ModernTheme.Color.lightGray)
-                                    )
-                                    .foregroundColor(ModernTheme.Color.darkGray)
-                                }
                             }
                             .padding(.horizontal, ModernTheme.Spacing.lg)
                             .fadeInAnimation()
-                            
-                            // Search bar
-                            HStack(spacing: ModernTheme.Spacing.sm) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(ModernTheme.Color.textGray)
-                                
-                                TextField("Search backlog...", text: $searchText)
-                                    .font(ModernTheme.Font.callout)
-                                    .foregroundColor(ModernTheme.Color.pureBlack)
-                                    .textFieldStyle(PlainTextFieldStyle())
-                                
-                                if !searchText.isEmpty {
-                                    Button(action: {
-                                        withAnimation(ModernTheme.Animation.quick) {
-                                            searchText = ""
-                                        }
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(ModernTheme.Color.textGray)
-                                    }
-                                }
-                            }
-                            .padding(ModernTheme.Spacing.sm)
-                            .background(
-                                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                                    .fill(ModernTheme.Color.pureWhite)
-                                    .shadow(
-                                        color: ModernTheme.Shadow.subtle.color,
-                                        radius: ModernTheme.Shadow.subtle.radius,
-                                        x: 0,
-                                        y: ModernTheme.Shadow.subtle.y
-                                    )
-                            )
-                            .padding(.horizontal, ModernTheme.Spacing.lg)
-                            .fadeInAnimation(delay: 0.1)
                         }
                         .padding(.top, ModernTheme.Spacing.xl)
                         .padding(.bottom, ModernTheme.Spacing.md)

@@ -98,9 +98,10 @@ struct AddProblemView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     isTextFieldFocused = true
                 }
+                title = ""
             }
             .onDisappear {
-                title = ""
+                //title = ""
             }
         }
     }

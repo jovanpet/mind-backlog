@@ -58,7 +58,7 @@ struct IssuesView: View {
                                         showMenu: showMenu == item.id,
                                         onTap: {
                                             withAnimation(ModernTheme.Animation.spring) {
-                                                selectedCard = item.id
+                                                selectedCard = (selectedCard == item.id) ? nil : item.id
                                             }
                                         },
                                         onMenuTap: {
@@ -99,6 +99,8 @@ struct IssuesView: View {
 
 // MARK: - Active Card Component
 struct ActiveCard: View {
+    @EnvironmentObject var viewModel: ProblemItemsViewModel
+
     let item: ProblemItem
     let isSelected: Bool
     let showMenu: Bool
@@ -109,7 +111,9 @@ struct ActiveCard: View {
     let onDelete: () -> Void
     
     @State private var isPressed = false
-    
+    @State private var isAddingTask = false
+    @State private var newTaskText: String = ""
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: ModernTheme.Spacing.md) {
@@ -119,29 +123,35 @@ struct ActiveCard: View {
                             .font(ModernTheme.Font.headline)
                             .foregroundColor(ModernTheme.Color.pureBlack)
                             .fixedSize(horizontal: false, vertical: true)
-                        
-                        if let firstTask = item.tasks.first {
-                            HStack(spacing: ModernTheme.Spacing.xs) {
-                                Image(systemName: "arrow.right.circle.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(ModernTheme.Color.accent)
-                                Text("Next: \(firstTask.task)")
-                                    .font(ModernTheme.Font.caption)
-                                    .foregroundColor(ModernTheme.Color.textGray)
-                                    .lineLimit(1)
+
+                        if isSelected {
+                            TaskList(for: item)
+                                .padding(.top, ModernTheme.Spacing.sm)
+                                .animation(ModernTheme.Animation.smooth, value: item.tasks)
+                        } else {
+                            if let firstTask = item.tasks.first {
+                                HStack(spacing: ModernTheme.Spacing.xs) {
+                                    Image(systemName: "arrow.right.circle.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(ModernTheme.Color.accent)
+                                    Text("Next: \(firstTask.task)")
+                                        .font(ModernTheme.Font.caption)
+                                        .foregroundColor(ModernTheme.Color.textGray)
+                                        .lineLimit(1)
+                                }
                             }
                         }
                     }
-                    
+
                     Spacer()
-                    
+
                     // Menu button
                     Button(action: onMenuTap) {
                         ZStack {
                             Circle()
                                 .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
                                 .frame(width: 36, height: 36)
-                            
+
                             Image(systemName: showMenu ? "xmark" : "ellipsis")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(ModernTheme.Color.darkGray)
@@ -150,51 +160,7 @@ struct ActiveCard: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                
-                // Task progress indicator
-                if !item.tasks.isEmpty {
-                    let completedTasks = item.tasks.filter { $0.isDone }.count
-                    let totalTasks = item.tasks.count
-                    
-                    VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                        HStack {
-                            Text("\(completedTasks) of \(totalTasks) steps completed")
-                                .font(ModernTheme.Font.caption)
-                                .foregroundColor(ModernTheme.Color.textGray)
-                            
-                            Spacer()
-                            
-                            Text("\(Int((Double(completedTasks) / Double(totalTasks)) * 100))%")
-                                .font(ModernTheme.Font.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(ModernTheme.Color.accent)
-                        }
-                        
-                        // Progress bar
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(ModernTheme.Color.lightGray)
-                                    .frame(height: 4)
-                                
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [ModernTheme.Color.accent, ModernTheme.Color.accentLight],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .frame(
-                                        width: geometry.size.width * (Double(completedTasks) / Double(totalTasks)),
-                                        height: 4
-                                    )
-                                    .animation(ModernTheme.Animation.spring, value: completedTasks)
-                            }
-                        }
-                        .frame(height: 4)
-                    }
-                }
+
             }
             .padding(ModernTheme.Spacing.lg)
             .background(
@@ -231,7 +197,7 @@ struct ActiveCard: View {
                         }
                     }
             )
-            
+
             // Menu options
             if showMenu {
                 VStack(spacing: 0) {
@@ -241,18 +207,14 @@ struct ActiveCard: View {
                         color: ModernTheme.Color.warning,
                         action: onMoveToBacklog
                     )
-                    
+
                     MenuOption(
                         icon: "checkmark.circle",
                         title: "Mark as Completed",
                         color: ModernTheme.Color.success,
                         action: onComplete
                     )
-                    
-                    ModernDivider()
-                        .padding(.horizontal, ModernTheme.Spacing.md)
-                        .padding(.vertical, ModernTheme.Spacing.xs)
-                    
+
                     MenuOption(
                         icon: "trash",
                         title: "Delete",
@@ -277,6 +239,80 @@ struct ActiveCard: View {
                     removal: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity)
                 ))
             }
+        }
+    }
+
+    @ViewBuilder
+    private func TaskList(for item: ProblemItem) -> some View {
+        VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
+            ForEach(Array(item.tasks.enumerated()), id: \.element.id) { index, task in
+                HStack(spacing: ModernTheme.Spacing.xs) {
+                    Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
+                        .foregroundColor(task.isDone ? ModernTheme.Color.success : ModernTheme.Color.textGray)
+                    Text(task.task)
+                        .font(ModernTheme.Font.caption)
+                        .foregroundColor(ModernTheme.Color.textGray)
+                        .strikethrough(task.isDone, color: .gray)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            if !isSelected, let firstIncompleteIndex = item.tasks.firstIndex(where: { !$0.isDone }) {
+                let firstIncompleteTask = item.tasks[firstIncompleteIndex]
+                HStack(spacing: ModernTheme.Spacing.xs) {
+                    Image(systemName: "arrow.right.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(ModernTheme.Color.accent)
+                    Text("Next: \(firstIncompleteTask.task)")
+                        .font(ModernTheme.Font.caption)
+                        .foregroundColor(ModernTheme.Color.textGray)
+                        .lineLimit(1)
+                }
+            } else if !item.tasks.isEmpty {
+                // If all tasks done, show no "Next"
+            }
+            if isAddingTask {
+                HStack(spacing: ModernTheme.Spacing.xs) {
+                    Image(systemName: "circle")
+                        .foregroundColor(ModernTheme.Color.textGray)
+                    TextField("New Task", text: $newTaskText, onCommit: {
+                        commitNewTask()
+                    })
+                    .textFieldStyle(.roundedBorder)
+                    .font(ModernTheme.Font.caption)
+                }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            } else {
+                Button(action: {
+                    withAnimation(ModernTheme.Animation.smooth) {
+                        isAddingTask = true
+                        newTaskText = ""
+                    }
+                }) {
+                    HStack(spacing: ModernTheme.Spacing.xs) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(ModernTheme.Color.accent)
+                        Text("Add Task")
+                            .font(ModernTheme.Font.caption)
+                            .foregroundColor(ModernTheme.Color.accent)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.top, ModernTheme.Spacing.xs)
+            }
+        }
+    }
+    
+    private func commitNewTask() {
+        guard !newTaskText.trimmingCharacters(in: .whitespaces).isEmpty else {
+            withAnimation(ModernTheme.Animation.smooth) {
+                isAddingTask = false
+            }
+            return
+        }
+        withAnimation(ModernTheme.Animation.smooth) {
+            viewModel.addTaskItem(to: item.id, task: newTaskText)
+            isAddingTask = false
+            newTaskText = ""
         }
     }
 }

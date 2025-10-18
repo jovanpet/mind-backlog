@@ -24,13 +24,15 @@ class ProblemItemsViewModel: ObservableObject {
     }
     
     func addTaskItem(to problemItemId: UUID, task: String) {
+        toggleLastTaskDone(for: problemItemId)
+
         guard let index = items.firstIndex(where: { $0.id == problemItemId }) else { return }
         
         let newTask = TaskItem(id: UUID(), task: task, isDone: false)
         items[index].tasks.append(newTask)
-        toggleLastTaskDone(for: problemItemId)
         
         problemItemService.saveCurrentProblemItems(items)
+        refresh()
     }
     
     func toggleLastTaskDone(for problemItemId: UUID) {

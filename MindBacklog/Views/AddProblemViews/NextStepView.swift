@@ -68,29 +68,6 @@ struct NextStepView: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Back button
-                    HStack {
-                        Button(action: { dismiss() }) {
-                            HStack(spacing: ModernTheme.Spacing.xs) {
-                                Image(systemName: "arrow.left")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Back")
-                                    .font(ModernTheme.Font.callout)
-                            }
-                            .foregroundColor(ModernTheme.Color.darkGray)
-                            .padding(ModernTheme.Spacing.sm)
-                            .background(
-                                Capsule()
-                                    .fill(ModernTheme.Color.lightGray.opacity(0.5))
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, ModernTheme.Spacing.lg)
-                    .padding(.top, ModernTheme.Spacing.lg)
-                    
                     Spacer()
                     
                     VStack(spacing: ModernTheme.Spacing.xxl) {
@@ -119,7 +96,6 @@ struct NextStepView: View {
                                 .scaleEffect(showSuccess ? 1.2 : 1.0)
                                 .rotationEffect(.degrees(showSuccess ? 360 : 0))
                         }
-                        .fadeInAnimation()
                         .onAppear {
                             withAnimation {
                                 showSuccess = true
@@ -127,44 +103,24 @@ struct NextStepView: View {
                         }
                         
                         // Content section
-                        VStack(spacing: ModernTheme.Spacing.lg) {
+                        VStack(spacing: ModernTheme.Spacing.md) {
                             // Problem context
                             VStack(spacing: ModernTheme.Spacing.xs) {
                                 Text("Great! Let's tackle:")
                                     .font(ModernTheme.Font.caption)
                                     .foregroundColor(ModernTheme.Color.textGray)
                                     .textCase(.uppercase)
-                                    .tracking(1.2)
-                                    .fadeInAnimation(delay: 0.1)
+                                    .tracking(1.5)
                                 
-                                Text(problemTitle)
-                                    .font(ModernTheme.Font.title)
-                                    .foregroundColor(ModernTheme.Color.pureBlack)
+                                ModernDivider()
+                                    .frame(width: 60)
+                                
+                                Text("What's your very next step?")
+                                    .font(ModernTheme.Font.headline)
+                                    .foregroundColor(ModernTheme.Color.darkGray)
                                     .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                                    .fadeInAnimation(delay: 0.2)
-                                
-                                Rectangle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                ModernTheme.Color.accent.opacity(0.3),
-                                                ModernTheme.Color.accentLight.opacity(0.3)
-                                            ],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .frame(width: 80, height: 3)
-                                    .cornerRadius(1.5)
-                                    .fadeInAnimation(delay: 0.3)
                             }
-                            
-                            // Main question
-                            Text("What's your very next step?")
-                                .font(ModernTheme.Font.headline)
-                                .foregroundColor(ModernTheme.Color.darkGray)
-                                .fadeInAnimation(delay: 0.4)
+                            .padding(.horizontal, ModernTheme.Spacing.xl)
                         }
                         
                         // Input section
@@ -257,27 +213,34 @@ struct NextStepView: View {
                                         .onEnded { _ in isAddButtonPressed = false }
                                 )
                                 
-                                // Secondary action button
+                                // Secondary action button (styled like Add & Start)
                                 Button(action: {
                                     navigateToBacklogAdded = true
                                 }) {
                                     HStack(spacing: ModernTheme.Spacing.sm) {
                                         Text("I'm not sure yet")
-                                            .font(ModernTheme.Font.callout)
+                                            .font(ModernTheme.Font.button)
+                                            .fontWeight(.semibold)
                                         
                                         Image(systemName: "questionmark.circle")
-                                            .font(.system(size: 16))
+                                            .font(.system(size: 18))
                                     }
-                                    .foregroundColor(ModernTheme.Color.darkGray)
+                                    .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, ModernTheme.Spacing.md)
                                     .background(
-                                        RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.round)
-                                            .fill(ModernTheme.Color.lightGray.opacity(0.5))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.round)
-                                                    .stroke(ModernTheme.Color.mediumGray, lineWidth: 1)
-                                            )
+                                        LinearGradient(
+                                            colors: [ModernTheme.Color.accent, ModernTheme.Color.accentLight],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(ModernTheme.CornerRadius.round)
+                                    .shadow(
+                                        color: ModernTheme.Color.accent.opacity(0.3),
+                                        radius: 15,
+                                        x: 0,
+                                        y: 8
                                     )
                                     .scaleEffect(isSkipButtonPressed ? 0.95 : 1.0)
                                 }
@@ -324,10 +287,10 @@ struct NextStepView: View {
             }
         }
     }
-    
+
     private func addNextStep() {
         guard !nextStep.isEmpty else { return }
-        
+
         withAnimation(ModernTheme.Animation.spring) {
             viewModel.addProblemItem(
                 ProblemItem(
@@ -339,11 +302,11 @@ struct NextStepView: View {
                 )
             )
         }
-        
+
         // Haptic feedback
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
-        
+
         dismiss()
     }
 }
