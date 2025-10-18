@@ -16,7 +16,7 @@ struct BacklogAddedView: View {
     @State private var cardScale = 0.8
     @State private var cardOpacity = 0.0
     @State private var buttonPressed = false
-    @State private var particlesVisible = false
+    @State private var emojiScale = 1.0
     
     private var emoji: String {
         switch messageType {
@@ -58,8 +58,6 @@ struct BacklogAddedView: View {
         }
     }
     
-    @State private var selectedQuote: String = ""
-    
     var body: some View {
         ZStack {
             // Gradient background
@@ -74,17 +72,6 @@ struct BacklogAddedView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
-            // Animated background particles
-            if particlesVisible {
-                ForEach(0..<15) { index in
-                    ParticleView(
-                        color: messageType == .cannotSolveNow ?
-                            ModernTheme.Color.accent : ModernTheme.Color.warning,
-                        delay: Double(index) * 0.1
-                    )
-                }
-            }
             
             VStack(spacing: 0) {
                 Spacer()
@@ -126,7 +113,7 @@ struct BacklogAddedView: View {
                             
                             Text(emoji)
                                 .font(.system(size: 56))
-                                .scaleEffect(showConfetti ? 1.1 : 1.0)
+                                .scaleEffect(emojiScale)
                         }
                     }
                     .scaleEffect(cardScale)
@@ -198,30 +185,7 @@ struct BacklogAddedView: View {
                             )
                     }
                     
-                    // Motivational quote with typewriter effect
-                    VStack(spacing: ModernTheme.Spacing.xs) {
-                        Image(systemName: "quote.opening")
-                            .font(.system(size: 20))
-                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.3))
-                        
-                        Text(selectedQuote)
-                            .font(ModernTheme.Font.callout)
-                            .italic()
-                            .foregroundColor(ModernTheme.Color.textGray)
-                            .multilineTextAlignment(.center)
-                            .frame(height: 50)
-                            .padding(.horizontal, ModernTheme.Spacing.lg)
-                        
-                        Image(systemName: "quote.closing")
-                            .font(.system(size: 20))
-                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.3))
-                    }
-                    .scaleEffect(cardScale)
-                    .opacity(cardOpacity)
-                    .animation(
-                        ModernTheme.Animation.gentle.delay(0.4),
-                        value: cardOpacity
-                    )
+                    // Motivational quote section removed
                 }
                 .padding(.horizontal, ModernTheme.Spacing.xl)
                 
@@ -232,6 +196,13 @@ struct BacklogAddedView: View {
                 VStack(spacing: ModernTheme.Spacing.lg) {
                     // Stats row
                     HStack(spacing: ModernTheme.Spacing.xl) {
+                        
+                        StatItem(
+                            icon: "flame",
+                            value: "\(viewModel.active.count)",
+                            label: "Active"
+                        )
+                        
                         StatItem(
                             icon: "archivebox",
                             value: "\(viewModel.backlog.count + 1)",
@@ -255,12 +226,7 @@ struct BacklogAddedView: View {
                             ModernTheme.Animation.gentle.delay(0.6),
                             value: cardOpacity
                         )
-                        
-                        StatItem(
-                            icon: "flame",
-                            value: "\(viewModel.active.count)",
-                            label: "Active"
-                        )
+
                         .scaleEffect(cardScale)
                         .opacity(cardOpacity)
                         .animation(
@@ -332,16 +298,18 @@ struct BacklogAddedView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
-            selectedQuote = motivationalQuotes.randomElement() ?? motivationalQuotes[0]
-            
             withAnimation(ModernTheme.Animation.bounce) {
                 cardScale = 1.0
                 cardOpacity = 1.0
             }
-            
             withAnimation(ModernTheme.Animation.gentle.delay(0.3)) {
                 showConfetti = true
-                particlesVisible = true
+            }
+            withAnimation(
+                Animation.easeInOut(duration: 1.2)
+                    .repeatForever(autoreverses: true)
+            ) {
+                emojiScale = 1.1
             }
         }
     }

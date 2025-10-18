@@ -230,45 +230,24 @@ struct BacklogCard: View {
                                 .font(ModernTheme.Font.caption)
                         }
                         .foregroundColor(ModernTheme.Color.textGray)
-                        
-                        // Task count if any
-                        if !item.tasks.isEmpty {
-                            HStack(spacing: ModernTheme.Spacing.xxs) {
-                                Image(systemName: "checklist")
-                                    .font(.system(size: 11))
-                                Text("\(item.tasks.count) step\(item.tasks.count == 1 ? "" : "s")")
-                                    .font(ModernTheme.Font.caption)
-                            }
-                            .foregroundColor(ModernTheme.Color.accent)
-                        }
                     }
                     
-                    // Expandable tasks preview
-                    if isSelected && !item.tasks.isEmpty {
-                        VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                            ForEach(item.tasks.prefix(3)) { task in
-                                HStack(spacing: ModernTheme.Spacing.xs) {
-                                    Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(task.isDone ? ModernTheme.Color.success : ModernTheme.Color.textGray.opacity(0.5))
-                                    Text(task.task)
-                                        .font(ModernTheme.Font.caption)
-                                        .foregroundColor(ModernTheme.Color.textGray)
-                                        .lineLimit(1)
-                                }
-                            }
-                            
-                            if item.tasks.count > 3 {
-                                Text("+ \(item.tasks.count - 3) more...")
-                                    .font(ModernTheme.Font.caption)
-                                    .foregroundColor(ModernTheme.Color.textGray.opacity(0.7))
-                            }
+                    // Tasks preview or expanded list
+                    if isSelected {
+                        TaskList(for: item)
+                            .padding(.top, ModernTheme.Spacing.sm)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .animation(ModernTheme.Animation.smooth, value: isSelected)
+                    } else if let firstTask = item.tasks.first {
+                        HStack(spacing: ModernTheme.Spacing.xs) {
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(ModernTheme.Color.accent)
+                            Text("Next: \(firstTask.task)")
+                                .font(ModernTheme.Font.caption)
+                                .foregroundColor(ModernTheme.Color.textGray)
+                                .lineLimit(1)
                         }
-                        .padding(.top, ModernTheme.Spacing.xs)
-                        .transition(.asymmetric(
-                            insertion: .scale(scale: 0.95, anchor: .top).combined(with: .opacity),
-                            removal: .scale(scale: 0.95, anchor: .top).combined(with: .opacity)
-                        ))
                     }
                 }
                 
@@ -276,23 +255,7 @@ struct BacklogCard: View {
                 
                 // Action buttons
                 HStack(spacing: ModernTheme.Spacing.xs) {
-                    // Quick activate button
-                    Button(action: onMoveToActive) {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(ModernTheme.Color.accent)
-                            .frame(width: 32, height: 32)
-                            .background(
-                                Circle()
-                                    .fill(ModernTheme.Color.accent.opacity(0.1))
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .opacity(isSelected ? 1 : 0)
-                    .scaleEffect(isSelected ? 1 : 0.8)
-                    .animation(ModernTheme.Animation.spring, value: isSelected)
-                    
-                    // Menu button
+                    // Menu button (no quick activate)
                     Button(action: onMenuTap) {
                         Image(systemName: showMenu ? "xmark" : "ellipsis")
                             .font(.system(size: 14))
@@ -327,7 +290,9 @@ struct BacklogCard: View {
             )
             .scaleEffect(isPressed ? 0.98 : 1.0)
             .onTapGesture {
-                onTap()
+                withAnimation(ModernTheme.Animation.smooth) {
+                    onTap()
+                }
             }
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -343,40 +308,48 @@ struct BacklogCard: View {
                     }
             )
             
-            // Context menu
+            // Context menu - vertically stacked MenuOption(s)
             if showMenu {
-                HStack(spacing: ModernTheme.Spacing.xs) {
-                    Button(action: onMoveToActive) {
-                        Label("Activate", systemImage: "play.fill")
-                            .font(ModernTheme.Font.caption)
-                            .foregroundColor(ModernTheme.Color.accent)
-                            .padding(.horizontal, ModernTheme.Spacing.sm)
-                            .padding(.vertical, ModernTheme.Spacing.xs)
-                            .background(
-                                Capsule()
-                                    .fill(ModernTheme.Color.accent.opacity(0.1))
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Button(action: onDelete) {
-                        Label("Delete", systemImage: "trash")
-                            .font(ModernTheme.Font.caption)
-                            .foregroundColor(ModernTheme.Color.error)
-                            .padding(.horizontal, ModernTheme.Spacing.sm)
-                            .padding(.vertical, ModernTheme.Spacing.xs)
-                            .background(
-                                Capsule()
-                                    .fill(ModernTheme.Color.error.opacity(0.1))
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
+                    MenuOption(
+                        icon: "play.fill",
+                        title: "Activate",
+                        color: ModernTheme.Color.accent,
+                        action: {
+                            onMoveToActive()
+                        }
+                    )
+                    MenuOption(
+                        icon: "trash",
+                        title: "Delete",
+                        color: ModernTheme.Color.error,
+                        action: {
+                            onDelete()
+                        }
+                    )
                 }
                 .padding(.top, ModernTheme.Spacing.xs)
                 .transition(.asymmetric(
                     insertion: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity),
                     removal: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity)
                 ))
+            }
+        }
+    }
+}
+
+// MARK: - Task List for Backlog Card
+@ViewBuilder
+private func TaskList(for item: ProblemItem) -> some View {
+    VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
+        ForEach(item.tasks) { task in
+            HStack(spacing: ModernTheme.Spacing.xs) {
+                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(task.isDone ? ModernTheme.Color.success : ModernTheme.Color.textGray)
+                Text(task.task)
+                    .font(ModernTheme.Font.caption)
+                    .foregroundColor(ModernTheme.Color.textGray)
+                    .strikethrough(task.isDone, color: .gray)
             }
         }
     }
@@ -409,3 +382,4 @@ struct HighlightedText: View {
             .environmentObject(ProblemItemsViewModel())
     }
 }
+
