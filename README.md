@@ -3,7 +3,7 @@ _A calm space to organize thoughts, reflect, and act with clarity._
 
 ![Platform](https://img.shields.io/badge/platform-iOS-blue)
 ![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-lightgrey)
-![Status](https://img.shields.io/badge/status-in%20development-green)
+![Status](https://img.shields.io/badge/status-released-green)
 
 ---
 
@@ -63,3 +63,4 @@ No analytics, tracking, or data collection.
 
 📜 [Privacy Policy](https://github.com/jovanpet/mind-backlog-priv-policy/blob/main/privacy-policy.md)  
 🆘 [Support](https://github.com/jovanpet/mind-backlog-priv-policy/blob/main/support.md)
+
