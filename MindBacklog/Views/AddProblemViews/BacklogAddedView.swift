@@ -5,6 +5,7 @@ struct BacklogAddedView: View {
     @Environment(\.dismiss) private var dismiss
     
     enum MessageType {
+        case added
         case cannotSolveNow
         case notSure
     }
@@ -20,6 +21,7 @@ struct BacklogAddedView: View {
     
     private var emoji: String {
         switch messageType {
+        case .added: return "✅"
         case .cannotSolveNow: return "😌"
         case .notSure: return "💭"
         }
@@ -27,6 +29,7 @@ struct BacklogAddedView: View {
     
     private var title: String {
         switch messageType {
+        case .added: return "Let's Get Started"
         case .cannotSolveNow: return "Perfectly Fine"
         case .notSure: return "No Worries"
         }
@@ -34,6 +37,7 @@ struct BacklogAddedView: View {
     
     private var subtitle: String {
         switch messageType {
+        case .added: return "Start by completing the first task"
         case .cannotSolveNow: return "It's safely stored in your backlog"
         case .notSure: return "We'll keep it warm for you"
         }
@@ -41,6 +45,13 @@ struct BacklogAddedView: View {
     
     private var motivationalQuotes: [String] {
         switch messageType {
+        case .added:
+            return [
+                "The most important thing is to start",
+                "Small steps lead to big results",
+                "Don't be afraid to take the first step",
+                "The journey begins with the first step"
+            ]
         case .cannotSolveNow:
             return [
                 "Progress isn't always linear",
@@ -60,18 +71,9 @@ struct BacklogAddedView: View {
     
     var body: some View {
         ZStack {
-            // Gradient background
-            LinearGradient(
-                colors: [
-                    ModernTheme.Color.pureWhite,
-                    messageType == .cannotSolveNow ?
-                        ModernTheme.Color.accent.opacity(0.05) :
-                        ModernTheme.Color.warning.opacity(0.05)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            //Bakgrounf
+            ModernTheme.Color.background
+                .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 Spacer()
@@ -84,15 +86,13 @@ struct BacklogAddedView: View {
                         Circle()
                             .fill(
                                 RadialGradient(
-                                    colors: [
-                                        (messageType == .cannotSolveNow ?
-                                            ModernTheme.Color.accent :
-                                            ModernTheme.Color.warning).opacity(0.2),
+                                    colors:[
+                                        ModernTheme.Color.accent.opacity(0.4),
                                         Color.clear
                                     ],
                                     center: .center,
                                     startRadius: 20,
-                                    endRadius: 80
+                                    endRadius: 60
                                 )
                             )
                             .frame(width: 160, height: 160)
@@ -102,10 +102,10 @@ struct BacklogAddedView: View {
                         // Emoji container
                         ZStack {
                             Circle()
-                                .fill(ModernTheme.Color.pureWhite)
+                                .fill(ModernTheme.Color.elevatedBackground)
                                 .frame(width: 100, height: 100)
                                 .shadow(
-                                    color: ModernTheme.Shadow.medium.color,
+                                    color: ModernTheme.Color.shadow,
                                     radius: ModernTheme.Shadow.medium.radius,
                                     x: 0,
                                     y: ModernTheme.Shadow.medium.y
@@ -123,13 +123,13 @@ struct BacklogAddedView: View {
                     VStack(spacing: ModernTheme.Spacing.md) {
                         Text(title)
                             .font(.system(size: 36, weight: .bold, design: .default))
-                            .foregroundColor(ModernTheme.Color.pureBlack)
+                            .foregroundColor(ModernTheme.Color.textPrimary)
                             .scaleEffect(cardScale)
                             .opacity(cardOpacity)
                         
                         Text(subtitle)
                             .font(ModernTheme.Font.body)
-                            .foregroundColor(ModernTheme.Color.textGray)
+                            .foregroundColor(ModernTheme.Color.textSecondary)
                             .scaleEffect(cardScale)
                             .opacity(cardOpacity)
                             .animation(
@@ -143,16 +143,12 @@ struct BacklogAddedView: View {
                         HStack(spacing: ModernTheme.Spacing.xs) {
                             Image(systemName: "archivebox.fill")
                                 .font(.system(size: 14))
-                                .foregroundColor(
-                                    messageType == .cannotSolveNow ?
-                                        ModernTheme.Color.accent :
-                                        ModernTheme.Color.warning
-                                )
+                                .foregroundColor(ModernTheme.Color.accent)
                             
                             Text("SAVED TO BACKLOG")
                                 .font(ModernTheme.Font.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(ModernTheme.Color.textGray)
+                                .foregroundColor(ModernTheme.Color.textSecondary)
                                 .tracking(1.5)
                         }
                         .scaleEffect(cardScale)
@@ -164,17 +160,17 @@ struct BacklogAddedView: View {
                         
                         Text(problemTitle)
                             .font(ModernTheme.Font.headline)
-                            .foregroundColor(ModernTheme.Color.pureBlack)
+                            .foregroundColor(ModernTheme.Color.textPrimary)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .padding(.horizontal, ModernTheme.Spacing.lg)
                             .padding(.vertical, ModernTheme.Spacing.md)
                             .background(
                                 RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                                    .fill(ModernTheme.Color.lightGray.opacity(0.5))
+                                    .fill(ModernTheme.Color.surfaceSecondary.opacity(0.5))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                                            .stroke(ModernTheme.Color.mediumGray.opacity(0.5), lineWidth: 1)
+                                            .stroke(ModernTheme.Color.surface.opacity(0.5), lineWidth: 1)
                                     )
                             )
                             .scaleEffect(cardScale)
@@ -247,22 +243,15 @@ struct BacklogAddedView: View {
                             Image(systemName: "arrow.right")
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        .foregroundColor(ModernTheme.Color.pureWhite)
+                        .foregroundColor(ModernTheme.Color.inputBackground)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, ModernTheme.Spacing.md)
                         .background(
-                            LinearGradient(
-                                colors: [
-                                    ModernTheme.Color.pureBlack,
-                                    ModernTheme.Color.darkGray
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                            ModernTheme.Color.accent
                         )
                         .cornerRadius(ModernTheme.CornerRadius.round)
                         .shadow(
-                            color: ModernTheme.Color.pureBlack.opacity(0.2),
+                            color: ModernTheme.Color.textPrimary.opacity(0.2),
                             radius: buttonPressed ? 5 : 15,
                             x: 0,
                             y: buttonPressed ? 2 : 8
@@ -380,17 +369,17 @@ struct StatItem: View {
             
             Text(value)
                 .font(ModernTheme.Font.headline)
-                .foregroundColor(ModernTheme.Color.pureBlack)
+                .foregroundColor(ModernTheme.Color.textPrimary)
             
             Text(label)
                 .font(ModernTheme.Font.caption)
-                .foregroundColor(ModernTheme.Color.textGray)
+                .foregroundColor(ModernTheme.Color.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, ModernTheme.Spacing.sm)
         .background(
             RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.small)
-                .fill(ModernTheme.Color.lightGray.opacity(0.5))
+                .fill(ModernTheme.Color.surfaceSecondary.opacity(0.5))
         )
     }
 }

@@ -1,75 +1,110 @@
 import SwiftUI
 
+/// ViewModel for managing problem items across all views
+/// Handles CRUD operations and status updates for problems and tasks
 @MainActor
 class ProblemItemsViewModel: ObservableObject {
+    // MARK: - Published Properties
+
     @Published var items: [ProblemItem] = []
-    
-    var backlog: [ProblemItem] { items.filter { $0.status == ProblemItem.ProblemStatus.backlog } }
-    var active: [ProblemItem] { items.filter { $0.status == ProblemItem.ProblemStatus.active } }
-    var completed: [ProblemItem] { items.filter { $0.status == ProblemItem.ProblemStatus.completed } }
-    
-    private let problemItemService = ProblemItemsService()
-    
-    func loadItems() {
-        items = problemItemService.loadCurrentProblemItems()
+
+    // MARK: - Computed Properties
+
+    var backlog: [ProblemItem] {
+        items.filter { $0.status == .backlog }
     }
-    
+
+    var active: [ProblemItem] {
+        items.filter { $0.status == .active }
+    }
+
+    var completed: [ProblemItem] {
+        items.filter { $0.status == .completed }
+    }
+
+    // MARK: - Private Properties
+
+    private let problemItemService = ProblemItemsService()
+
+    // MARK: - Initialization
+
     init() {
         loadItems()
     }
-    
+
+    // MARK: - Public Methods
+
+    /// Adds a new problem item to the list
     func addProblemItem(_ item: ProblemItem) {
-        problemItemService.addCurrentProblemItem(item)
-        refresh()
+        items = problemItemService.addCurrentProblemItem(item)
     }
-    
+
+    /// Adds a new task to a problem item and marks the previous task as complete
     func addTaskItem(to problemItemId: UUID, task: String) {
-        toggleLastTaskDone(for: problemItemId)
-
         guard let index = items.firstIndex(where: { $0.id == problemItemId }) else { return }
-        
-        let newTask = TaskItem(id: UUID(), task: task, isDone: false)
-        items[index].tasks.append(newTask)
-        
-        problemItemService.saveCurrentProblemItems(items)
-        refresh()
+
+        var updatedItem = items[index]
+        var updatedTasks = updatedItem.tasks
+
+        // Mark the previous task as done
+        if let lastTaskIndex = updatedTasks.indices.last {
+            updatedTasks[lastTaskIndex].isDone = true
+        }
+
+        // Add new task
+        updatedTasks.append(TaskItem(id: UUID(), task: task, isDone: false))
+        updatedItem.tasks = updatedTasks
+        updatedItem.updatedAt = Date()
+
+        updateItemAndSave(updatedItem, at: index)
     }
-    
-    func toggleLastTaskDone(for problemItemId: UUID) {
-        guard let problemIndex = items.firstIndex(where: { $0.id == problemItemId }) else { return }
-        guard let taskIndex = items[problemIndex].tasks.indices.last else { return }
-        
-        items[problemIndex].tasks[taskIndex].isDone.toggle()
-    }
-    
+
+    /// Removes a problem item from the list
     func removeProblemItem(_ problemItemId: UUID) {
-        problemItemService.removeCurrentProblemItem(at: problemItemId)
-        refresh()
+        items = problemItemService.removeCurrentProblemItem(at: problemItemId)
     }
 
-    func updateProblemStatusToComplete(_ problemItemId: UUID) {
+    /// Updates the status of a problem item
+    func updateProblemStatus(_ problemItemId: UUID, to status: ProblemItem.ProblemStatus) {
         guard let index = items.firstIndex(where: { $0.id == problemItemId }) else { return }
-        items[index].status = ProblemItem.ProblemStatus.completed
-        items[index].updatedAt = Date()
-        problemItemService.saveCurrentProblemItems(items)
+
+        var updatedItem = items[index]
+        updatedItem.status = status
+        updatedItem.updatedAt = Date()
+
+        // Mark all tasks as done when moving to completed
+        if status == .completed {
+            var updatedTasks = updatedItem.tasks
+            for i in updatedTasks.indices {
+                updatedTasks[i].isDone = true
+            }
+            updatedItem.tasks = updatedTasks
+        }
+
+        updateItemAndSave(updatedItem, at: index)
     }
-    
-    func updateProblemStatusToBacklog(_ problemItemId: UUID) {
-        guard let index = items.firstIndex(where: { $0.id == problemItemId }) else { return }
-        items[index].status = ProblemItem.ProblemStatus.backlog
-        items[index].updatedAt = Date()
-        problemItemService.saveCurrentProblemItems(items)
-    }
-    
-    func updateProblemStatusToActive(_ problemItemId: UUID) {
-        guard let index = items.firstIndex(where: { $0.id == problemItemId }) else { return }
-        items[index].status = ProblemItem.ProblemStatus.active
-        items[index].updatedAt = Date()
-        problemItemService.saveCurrentProblemItems(items)
-    }
-    
+
+    /// Refreshes items from persistent storage
     func refresh() {
         loadItems()
     }
-    
+
+    // MARK: - Private Methods
+
+    /// Loads items from persistent storage
+    private func loadItems() {
+        items = problemItemService.loadCurrentProblemItems()
+    }
+
+    /// Updates an item at the specified index and saves to disk
+    /// Creates a new array to ensure SwiftUI detects the change
+    private func updateItemAndSave(_ updatedItem: ProblemItem, at index: Int) {
+        var newItems = items
+        newItems[index] = updatedItem
+        items = newItems
+
+        Task {
+            _ = problemItemService.saveCurrentProblemItems(items)
+        }
+    }
 }

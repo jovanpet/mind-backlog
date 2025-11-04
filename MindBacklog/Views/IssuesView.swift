@@ -9,20 +9,13 @@ struct IssuesView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Clean gradient background
-                LinearGradient(
-                    colors: [
-                        ModernTheme.Color.pureWhite,
-                        ModernTheme.Color.offWhite
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Background
+                ModernTheme.Color.background
+                    .ignoresSafeArea()
 
                 if viewModel.active.isEmpty {
                     // Empty state with animation
-                    ModernEmptyState(
+                    EmptyStateView(
                         icon: "🚀",
                         title: "No Active Issues",
                         message: "Add or move problems here when you're ready to take action"
@@ -30,20 +23,12 @@ struct IssuesView: View {
                 } else {
                         VStack(alignment: .leading, spacing: ModernTheme.Spacing.lg) {
                             // Header section
-                            VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                                Text("Active")
-                                    .font(.system(size: 42, weight: .bold, design: .default))
-                                    .foregroundColor(ModernTheme.Color.pureBlack)
-                                
-                                HStack(spacing: ModernTheme.Spacing.xs) {
-                                    Circle()
-                                        .fill(ModernTheme.Color.success)
-                                        .frame(width: 8, height: 8)
-                                    Text("\(viewModel.active.count) item\(viewModel.active.count == 1 ? "" : "s") to tackle")
-                                        .font(ModernTheme.Font.callout)
-                                        .foregroundColor(ModernTheme.Color.textGray)
-                                }
-                            }
+                            SectionHeader(
+                                title: "Active",
+                                subtitle: "\(viewModel.active.count) item\(viewModel.active.count == 1 ? "" : "s") to tackle",
+                                icon: "circle.fill",
+                                iconColor: ModernTheme.Color.success
+                            )
                             .padding(.horizontal, ModernTheme.Spacing.lg)
                             .padding(.top, ModernTheme.Spacing.xl)
                             .fadeInAnimation()
@@ -69,12 +54,12 @@ struct IssuesView: View {
                                         },
                                         onMoveToBacklog: {
                                             withAnimation(ModernTheme.Animation.smooth) {
-                                                viewModel.updateProblemStatusToBacklog(item.id)
+                                                viewModel.updateProblemStatus(item.id, to: .backlog)
                                             }
                                         },
                                         onComplete: {
                                             withAnimation(ModernTheme.Animation.smooth) {
-                                                viewModel.updateProblemStatusToComplete(item.id)
+                                                viewModel.updateProblemStatus(item.id, to: .completed)
                                             }
                                         },
                                         onDelete: {
@@ -83,7 +68,11 @@ struct IssuesView: View {
                                             }
                                         }
                                     )
-                                    .fadeInAnimation(delay: Double(index) * 0.1)
+                                    .fadeInAnimation(delay: Double(index) * 0.05)
+                                    .transition(.asymmetric(
+                                        insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                        removal: .scale(scale: 0.9).combined(with: .opacity)
+                                    ))
                                 }
                             }
                             .padding(.horizontal, ModernTheme.Spacing.lg)
@@ -92,7 +81,6 @@ struct IssuesView: View {
                     }
                 }
             }
-            .navigationBarHidden(true)
             .toolbar(.visible, for: .tabBar)
         }
     }
@@ -111,7 +99,6 @@ struct ActiveCard: View {
     let onComplete: () -> Void
     let onDelete: () -> Void
     
-    @State private var isPressed = false
     @State private var isAddingTask = false
     @State private var newTaskText: String = ""
 
@@ -122,56 +109,61 @@ struct ActiveCard: View {
                     VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
                         Text(item.problem)
                             .font(ModernTheme.Font.headline)
-                            .foregroundColor(ModernTheme.Color.pureBlack)
+                            .foregroundColor(ModernTheme.Color.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        if isSelected {
-                            TaskList(for: item)
-                                .padding(.top, ModernTheme.Spacing.sm)
-                                .animation(ModernTheme.Animation.smooth, value: item.tasks)
-                        } else {
-                            if let firstTask = item.tasks.first {
-                                HStack(spacing: ModernTheme.Spacing.xs) {
-                                    Image(systemName: "arrow.right.circle.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(ModernTheme.Color.accent)
-                                    Text("Next: \(firstTask.task)")
-                                        .font(ModernTheme.Font.caption)
-                                        .foregroundColor(ModernTheme.Color.textGray)
-                                        .lineLimit(1)
+                        TaskList(
+                            tasks: item.tasks,
+                            showAddButton: isSelected,
+                            isExpanded: isSelected,
+                            onAddTask: {
+                                withAnimation(ModernTheme.Animation.smooth) {
+                                    isAddingTask = true
+                                    newTaskText = ""
                                 }
                             }
+                        )
+                        .padding(.top, ModernTheme.Spacing.sm)
+
+                        // Add task input field
+                        if isSelected && isAddingTask {
+                            HStack(spacing: ModernTheme.Spacing.xs) {
+                                Image(systemName: "circle")
+                                    .foregroundColor(ModernTheme.Color.textSecondary)
+                                TextField("New Task", text: $newTaskText, onCommit: {
+                                    commitNewTask()
+                                })
+                                .textFieldStyle(.roundedBorder)
+                                .font(ModernTheme.Font.caption)
+                                Spacer()
+                                Button(action: {
+                                    commitNewTask()
+                                }) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(ModernTheme.Color.accent)
+                                        .font(.system(size: 20))
+                                }
+                            }
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
                     }
 
                     Spacer()
 
                     // Menu button
-                    Button(action: onMenuTap) {
-                        ZStack {
-                            Circle()
-                                .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
-                                .frame(width: 44, height: 44) // increased hit area
-                            Image(systemName: showMenu ? "xmark" : "ellipsis")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(ModernTheme.Color.darkGray)
-                                .rotationEffect(.degrees(showMenu ? 90 : 0))
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .contentShape(Rectangle()) // ensures the full area is tappable
+                    MenuButton(isMenuOpen: showMenu, action: onMenuTap)
                 }
 
             }
             .padding(ModernTheme.Spacing.lg)
             .background(
                 RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
-                    .fill(ModernTheme.Color.pureWhite)
+                    .fill(ModernTheme.Color.cardBackground)
                     .shadow(
-                        color: isPressed ? ModernTheme.Shadow.subtle.color : ModernTheme.Shadow.medium.color,
-                        radius: isPressed ? ModernTheme.Shadow.subtle.radius : ModernTheme.Shadow.medium.radius,
+                        color: ModernTheme.Color.shadow,
+                        radius: ModernTheme.Shadow.medium.radius,
                         x: 0,
-                        y: isPressed ? 2 : ModernTheme.Shadow.medium.y
+                        y: ModernTheme.Shadow.medium.y
                     )
             )
             .overlay(
@@ -181,127 +173,37 @@ struct ActiveCard: View {
                         lineWidth: 2
                     )
             )
-            .scaleEffect(isPressed ? 0.98 : 1.0)
             .onTapGesture {
                 onTap()
             }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        withAnimation(ModernTheme.Animation.quick) {
-                            isPressed = true
-                        }
-                    }
-                    .onEnded { _ in
-                        withAnimation(ModernTheme.Animation.quick) {
-                            isPressed = false
-                        }
-                    }
-            )
 
             // Menu options
             if showMenu {
-                VStack(spacing: 0) {
-                    MenuOption(
+                CardMenu(options: [
+                    MenuOptionData(
                         icon: "clock.arrow.circlepath",
                         title: "Move to Backlog",
                         color: ModernTheme.Color.warning,
                         action: onMoveToBacklog
-                    )
-
-                    MenuOption(
+                    ),
+                    MenuOptionData(
                         icon: "checkmark.circle",
                         title: "Mark as Completed",
                         color: ModernTheme.Color.success,
                         action: onComplete
-                    )
-
-                    MenuOption(
+                    ),
+                    MenuOptionData(
                         icon: "trash",
                         title: "Delete",
                         color: ModernTheme.Color.error,
                         action: onDelete
                     )
-                }
-                .padding(.vertical, ModernTheme.Spacing.xs)
-                .background(
-                    RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                        .fill(ModernTheme.Color.pureWhite)
-                        .shadow(
-                            color: ModernTheme.Shadow.subtle.color,
-                            radius: ModernTheme.Shadow.subtle.radius,
-                            x: 0,
-                            y: ModernTheme.Shadow.subtle.y
-                        )
-                )
+                ])
                 .padding(.top, ModernTheme.Spacing.xs)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity),
-                    removal: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity)
-                ))
             }
         }
     }
 
-    @ViewBuilder
-    private func TaskList(for item: ProblemItem) -> some View {
-        VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-            ForEach(Array(item.tasks.enumerated()), id: \.element.id) { index, task in
-                HStack(spacing: ModernTheme.Spacing.xs) {
-                    Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(task.isDone ? ModernTheme.Color.success : ModernTheme.Color.textGray)
-                    Text(task.task)
-                        .font(ModernTheme.Font.caption)
-                        .foregroundColor(ModernTheme.Color.textGray)
-                        .strikethrough(task.isDone, color: .gray)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            if !isSelected, let firstIncompleteIndex = item.tasks.firstIndex(where: { !$0.isDone }) {
-                let firstIncompleteTask = item.tasks[firstIncompleteIndex]
-                HStack(spacing: ModernTheme.Spacing.xs) {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(ModernTheme.Color.accent)
-                    Text("Next: \(firstIncompleteTask.task)")
-                        .font(ModernTheme.Font.caption)
-                        .foregroundColor(ModernTheme.Color.textGray)
-                        .lineLimit(1)
-                }
-            } else if !item.tasks.isEmpty {
-                // If all tasks done, show no "Next"
-            }
-            if isAddingTask {
-                HStack(spacing: ModernTheme.Spacing.xs) {
-                    Image(systemName: "circle")
-                        .foregroundColor(ModernTheme.Color.textGray)
-                    TextField("New Task", text: $newTaskText, onCommit: {
-                        commitNewTask()
-                    })
-                    .textFieldStyle(.roundedBorder)
-                    .font(ModernTheme.Font.caption)
-                }
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-            } else {
-                Button(action: {
-                    withAnimation(ModernTheme.Animation.smooth) {
-                        isAddingTask = true
-                        newTaskText = ""
-                    }
-                }) {
-                    HStack(spacing: ModernTheme.Spacing.xs) {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(ModernTheme.Color.accent)
-                        Text("Add Task")
-                            .font(ModernTheme.Font.caption)
-                            .foregroundColor(ModernTheme.Color.accent)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.top, ModernTheme.Spacing.xs)
-            }
-        }
-    }
     
     private func commitNewTask() {
         guard !newTaskText.trimmingCharacters(in: .whitespaces).isEmpty else {
@@ -318,44 +220,6 @@ struct ActiveCard: View {
     }
 }
 
-struct MenuOption: View {
-    let icon: String
-    let title: String
-    let color: Color
-    let action: () -> Void
-    
-    @State private var isHovered = false
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: ModernTheme.Spacing.sm) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(color)
-                    .frame(width: 24)
-                
-                Text(title)
-                    .font(ModernTheme.Font.callout)
-                    .foregroundColor(ModernTheme.Color.darkGray)
-                
-                Spacer()
-            }
-            .padding(.horizontal, ModernTheme.Spacing.md)
-            .padding(.vertical, ModernTheme.Spacing.sm)
-            .background(
-                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.small)
-                    .fill(isHovered ? color.opacity(0.1) : Color.clear)
-            )
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PlainButtonStyle())
-        .onHover { hovering in
-            withAnimation(ModernTheme.Animation.quick) {
-                isHovered = hovering
-            }
-        }
-    }
-}
 
 // MARK: - Preview
 #Preview {

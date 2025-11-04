@@ -15,15 +15,18 @@ struct NextStepView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Dynamic gradient background
-                LinearGradient(
-                    colors: [
-                        ModernTheme.Color.pureWhite,
-                        ModernTheme.Color.accent.opacity(0.03)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                // Background with subtle accent
+                ZStack {
+                    ModernTheme.Color.background
+                    LinearGradient(
+                        colors: [
+                            Color.clear,
+                            ModernTheme.Color.accent.opacity(0.03)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
                 .ignoresSafeArea()
                 
                 // Animated background shapes
@@ -108,16 +111,16 @@ struct NextStepView: View {
                             VStack(spacing: ModernTheme.Spacing.xs) {
                                 Text("Great! Let's tackle:")
                                     .font(ModernTheme.Font.caption)
-                                    .foregroundColor(ModernTheme.Color.textGray)
+                                    .foregroundColor(ModernTheme.Color.textSecondary)
                                     .textCase(.uppercase)
                                     .tracking(1.5)
                                 
-                                ModernDivider()
+                                StyledDivider()
                                     .frame(width: 60)
                                 
                                 Text("What's your very next step?")
                                     .font(ModernTheme.Font.headline)
-                                    .foregroundColor(ModernTheme.Color.darkGray)
+                                    .foregroundColor(ModernTheme.Color.textPrimary)
                                     .multilineTextAlignment(.center)
                             }
                             .padding(.horizontal, ModernTheme.Spacing.xl)
@@ -129,9 +132,9 @@ struct NextStepView: View {
                             VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
                                 HStack {
                                     TextField("", text: $nextStep, prompt: Text("E.g., \"Research for 15 minutes\" or \"Call John\"")
-                                        .foregroundColor(ModernTheme.Color.textGray.opacity(0.6)))
+                                        .foregroundColor(ModernTheme.Color.textSecondary.opacity(0.6)))
                                         .font(ModernTheme.Font.body)
-                                        .foregroundColor(ModernTheme.Color.pureBlack)
+                                        .foregroundColor(ModernTheme.Color.textPrimary)
                                         .focused($isTextFieldFocused)
                                         .textFieldStyle(PlainTextFieldStyle())
                                         .submitLabel(.done)
@@ -144,11 +147,11 @@ struct NextStepView: View {
                                 .padding(ModernTheme.Spacing.md)
                                 .background(
                                     RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                                        .fill(ModernTheme.Color.pureWhite)
+                                        .fill(ModernTheme.Color.inputBackground)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
                                                 .stroke(
-                                                    isTextFieldFocused ? ModernTheme.Color.accent : ModernTheme.Color.mediumGray,
+                                                    isTextFieldFocused ? ModernTheme.Color.accent : ModernTheme.Color.inputBorder,
                                                     lineWidth: isTextFieldFocused ? 2 : 1
                                                 )
                                         )
@@ -164,7 +167,7 @@ struct NextStepView: View {
                                 if isTextFieldFocused && !nextStep.isEmpty {
                                     Text("\(nextStep.count) characters")
                                         .font(ModernTheme.Font.caption)
-                                        .foregroundColor(ModernTheme.Color.textGray)
+                                        .foregroundColor(ModernTheme.Color.textSecondary)
                                         .transition(.opacity.combined(with: .move(edge: .top)))
                                 }
                             }
@@ -185,15 +188,7 @@ struct NextStepView: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, ModernTheme.Spacing.md)
-                                    .background(
-                                        LinearGradient(
-                                            colors: nextStep.isEmpty ?
-                                                [ModernTheme.Color.mediumGray, ModernTheme.Color.mediumGray] :
-                                                [ModernTheme.Color.accent, ModernTheme.Color.accentLight],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
+                                    .background(ModernTheme.Color.accent)
                                     .cornerRadius(ModernTheme.CornerRadius.round)
                                     .shadow(
                                         color: nextStep.isEmpty ? Color.clear : ModernTheme.Color.accent.opacity(0.3),
@@ -228,13 +223,7 @@ struct NextStepView: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, ModernTheme.Spacing.md)
-                                    .background(
-                                        LinearGradient(
-                                            colors: [ModernTheme.Color.accent, ModernTheme.Color.accentLight],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
+                                    .background(ModernTheme.Color.accent)
                                     .cornerRadius(ModernTheme.CornerRadius.round)
                                     .shadow(
                                         color: ModernTheme.Color.accent.opacity(0.3),
@@ -258,7 +247,7 @@ struct NextStepView: View {
                         // Motivational hint
                         Text("💡 Keep it small and actionable")
                             .font(ModernTheme.Font.caption)
-                            .foregroundColor(ModernTheme.Color.textGray)
+                            .foregroundColor(ModernTheme.Color.textSecondary)
                             .opacity(0.7)
                             .fadeInAnimation(delay: 0.8)
                     }

@@ -15,20 +15,13 @@ struct CompleteListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Clean gradient background
-                LinearGradient(
-                    colors: [
-                        ModernTheme.Color.pureWhite,
-                        ModernTheme.Color.offWhite
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Background
+                ModernTheme.Color.background
+                    .ignoresSafeArea()
                 
                 if viewModel.completed.isEmpty {
                     // Empty state with animation
-                    ModernEmptyState(
+                    EmptyStateView(
                         icon: "✅",
                         title: "No Completed Issues Yet",
                         message: "Finish tasks from your active list to see them here"
@@ -38,58 +31,18 @@ struct CompleteListView: View {
                         // Header Section
                         VStack(alignment: .leading, spacing: ModernTheme.Spacing.md) {
                             // Title and count
-                            VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                                Text("Completed")
-                                    .font(.system(size: 42, weight: .bold, design: .default))
-                                    .foregroundColor(ModernTheme.Color.pureBlack)
-                                
-                                HStack(spacing: ModernTheme.Spacing.xs) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(ModernTheme.Color.success)
-                                    Text("\(viewModel.completed.count) achievement\(viewModel.completed.count == 1 ? "" : "s")")
-                                        .font(ModernTheme.Font.callout)
-                                        .foregroundColor(ModernTheme.Color.textGray)
-                                }
-                            }
+                            SectionHeader(
+                                title: "Completed",
+                                subtitle: "\(viewModel.completed.count) achievement\(viewModel.completed.count == 1 ? "" : "s")",
+                                icon: "checkmark.circle.fill",
+                                iconColor: ModernTheme.Color.success
+                            )
                             .padding(.horizontal, ModernTheme.Spacing.lg)
                             
                             // Search bar
                             if viewModel.completed.count > 5 {
-                                HStack(spacing: ModernTheme.Spacing.sm) {
-                                    Image(systemName: "magnifyingglass")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(ModernTheme.Color.textGray)
-                                    
-                                    TextField("Search completed...", text: $searchText)
-                                        .font(ModernTheme.Font.callout)
-                                        .foregroundColor(ModernTheme.Color.pureBlack)
-                                        .textFieldStyle(PlainTextFieldStyle())
-                                    
-                                    if !searchText.isEmpty {
-                                        Button(action: {
-                                            withAnimation(ModernTheme.Animation.quick) {
-                                                searchText = ""
-                                            }
-                                        }) {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .font(.system(size: 16))
-                                                .foregroundColor(ModernTheme.Color.textGray)
-                                        }
-                                    }
-                                }
-                                .padding(ModernTheme.Spacing.sm)
-                                .background(
-                                    RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                                        .fill(ModernTheme.Color.pureWhite)
-                                        .shadow(
-                                            color: ModernTheme.Shadow.subtle.color,
-                                            radius: ModernTheme.Shadow.subtle.radius,
-                                            x: 0,
-                                            y: ModernTheme.Shadow.subtle.y
-                                        )
-                                )
-                                .padding(.horizontal, ModernTheme.Spacing.lg)
+                                SearchBar(searchText: $searchText, placeholder: "Search completed...")
+                                    .padding(.horizontal, ModernTheme.Spacing.lg)
                             }
                         }
                         .padding(.top, ModernTheme.Spacing.xl)
@@ -103,13 +56,13 @@ struct CompleteListView: View {
                                     VStack(spacing: ModernTheme.Spacing.md) {
                                         Image(systemName: "magnifyingglass")
                                             .font(.system(size: 48))
-                                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.5))
+                                            .foregroundColor(ModernTheme.Color.textSecondary.opacity(0.5))
                                         Text("No items found")
                                             .font(ModernTheme.Font.headline)
-                                            .foregroundColor(ModernTheme.Color.textGray)
+                                            .foregroundColor(ModernTheme.Color.textSecondary)
                                         Text("Try a different search term")
                                             .font(ModernTheme.Font.caption)
-                                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.8))
+                                            .foregroundColor(ModernTheme.Color.textSecondary.opacity(0.8))
                                     }
                                     .padding(.vertical, ModernTheme.Spacing.xxxl)
                                     .frame(maxWidth: .infinity)
@@ -131,7 +84,7 @@ struct CompleteListView: View {
                                             },
                                             onReactivate: {
                                                 withAnimation(ModernTheme.Animation.smooth) {
-                                                    viewModel.updateProblemStatusToActive(item.id)
+                                                    viewModel.updateProblemStatus(item.id, to: .active)
                                                 }
                                             },
                                             onDelete: {
@@ -141,6 +94,10 @@ struct CompleteListView: View {
                                             }
                                         )
                                         .fadeInAnimation(delay: Double(index) * 0.05)
+                                        .transition(.asymmetric(
+                                            insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                            removal: .scale(scale: 0.9).combined(with: .opacity)
+                                        ))
                                     }
                                 }
                             }
@@ -151,7 +108,6 @@ struct CompleteListView: View {
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
-            .navigationBarHidden(true)
             .toolbar(.visible, for: .tabBar)
         }
     }
@@ -159,7 +115,6 @@ struct CompleteListView: View {
 
 // MARK: - Completed Card Component
 struct CompletedCard: View {
-    @EnvironmentObject var viewModel: ProblemItemsViewModel
     let item: ProblemItem
     let isSelected: Bool
     let showMenu: Bool
@@ -167,171 +122,105 @@ struct CompletedCard: View {
     let onMenuTap: () -> Void
     let onReactivate: () -> Void
     let onDelete: () -> Void
-    
-    @State private var isPressed = false
-    
+
     var completionDate: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return formatter.localizedString(for: item.updatedAt, relativeTo: Date())
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: ModernTheme.Spacing.md) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                        // Completed badge
-                        HStack(spacing: ModernTheme.Spacing.xs) {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(ModernTheme.Color.success)
-                            
-                            Text("COMPLETED")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(ModernTheme.Color.success)
-                                .tracking(1.2)
-                            
-                            Text("• \(completionDate)")
-                                .font(.system(size: 10))
-                                .foregroundColor(ModernTheme.Color.textGray)
-                        }
-                        .padding(.bottom, ModernTheme.Spacing.xxs)
-                        
-                        // Problem title with strikethrough
-                        Text(item.problem)
-                            .font(ModernTheme.Font.headline)
-                            .foregroundColor(ModernTheme.Color.textGray)
-                            .strikethrough(true, color: ModernTheme.Color.textGray.opacity(0.5))
-                            .fixedSize(horizontal: false, vertical: true)
-                        
-                        // Show completed tasks if selected
-                        if isSelected && !item.tasks.isEmpty {
-                            VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                                Text("Tasks completed:")
-                                    .font(ModernTheme.Font.caption)
-                                    .foregroundColor(ModernTheme.Color.textGray.opacity(0.8))
-                                    .padding(.top, ModernTheme.Spacing.xs)
-                                
-                                ForEach(item.tasks) { task in
-                                    HStack(spacing: ModernTheme.Spacing.xs) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(ModernTheme.Color.success.opacity(0.7))
-                                        Text(task.task)
-                                            .font(ModernTheme.Font.caption)
-                                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.8))
-                                            .strikethrough(true, color: ModernTheme.Color.textGray.opacity(0.3))
-                                            .lineLimit(2)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                }
-                            }
-                            .padding(.top, ModernTheme.Spacing.sm)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                        } else if !item.tasks.isEmpty {
-                            Text("\(item.tasks.count) task\(item.tasks.count == 1 ? "" : "s") completed")
-                                .font(ModernTheme.Font.caption)
-                                .foregroundColor(ModernTheme.Color.textGray.opacity(0.7))
-                                .padding(.top, ModernTheme.Spacing.xxs)
-                        }
+            HStack(alignment: .top, spacing: ModernTheme.Spacing.md) {
+                // Content
+                VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
+                    // Completed badge
+                    HStack(spacing: ModernTheme.Spacing.xs) {
+                        StatusBadge(
+                            icon: "checkmark.seal.fill",
+                            text: "Completed",
+                            color: ModernTheme.Color.success
+                        )
+
+                        Text("• \(completionDate)")
+                            .font(.system(size: 10))
+                            .foregroundColor(ModernTheme.Color.textSecondary)
                     }
-                    
-                    Spacer()
-                    
-                    // Menu button (enlarged tappable area)
-                    Button(action: onMenuTap) {
-                        ZStack {
-                            Circle()
-                                .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
-                                .frame(width: 44, height: 44) // larger tap area
-                            Image(systemName: showMenu ? "xmark" : "ellipsis")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(ModernTheme.Color.darkGray)
-                                .rotationEffect(.degrees(showMenu ? 90 : 0))
-                        }
+                    .padding(.bottom, ModernTheme.Spacing.xxs)
+
+                    // Problem title with strikethrough
+                    Text(item.problem)
+                        .font(ModernTheme.Font.headline)
+                        .foregroundColor(ModernTheme.Color.textSecondary)
+                        .strikethrough(true, color: ModernTheme.Color.textSecondary.opacity(0.5))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // Tasks preview or expanded list
+                    if isSelected && !item.tasks.isEmpty {
+                        TaskList(
+                            tasks: item.tasks,
+                            showAddButton: false,
+                            isExpanded: true,
+                            showNextTask: false
+                        )
+                        .padding(.top, ModernTheme.Spacing.sm)
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .contentShape(Rectangle()) // ensures the whole frame is tappable
+                }
+
+                Spacer()
+
+                // Action buttons
+                HStack(spacing: ModernTheme.Spacing.xs) {
+                    // Menu button
+                    MenuButton(isMenuOpen: showMenu, action: onMenuTap)
                 }
             }
-            .padding(ModernTheme.Spacing.lg)
+            .padding(ModernTheme.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
-                    .fill(ModernTheme.Color.pureWhite.opacity(0.9))
+                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
+                    .fill(ModernTheme.Color.cardBackground.opacity(0.9))
                     .overlay(
-                        RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
+                        RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
                             .stroke(ModernTheme.Color.success.opacity(0.2), lineWidth: 1)
                     )
                     .shadow(
-                        color: isPressed ? ModernTheme.Shadow.subtle.color : ModernTheme.Shadow.subtle.color,
-                        radius: isPressed ? 2 : ModernTheme.Shadow.subtle.radius,
+                        color: ModernTheme.Color.shadow,
+                        radius: isSelected ? ModernTheme.Shadow.medium.radius : ModernTheme.Shadow.small.radius,
                         x: 0,
-                        y: isPressed ? 1 : ModernTheme.Shadow.subtle.y
+                        y: isSelected ? ModernTheme.Shadow.medium.y : ModernTheme.Shadow.small.y
                     )
             )
             .overlay(
-                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
+                RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
                     .stroke(
                         isSelected ? ModernTheme.Color.success.opacity(0.3) : Color.clear,
-                        lineWidth: 2
+                        lineWidth: 1.5
                     )
             )
-            .scaleEffect(isPressed ? 0.98 : 1.0)
             .onTapGesture {
-                onTap()
+                withAnimation(ModernTheme.Animation.smooth) {
+                    onTap()
+                }
             }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        withAnimation(ModernTheme.Animation.quick) {
-                            isPressed = true
-                        }
-                    }
-                    .onEnded { _ in
-                        withAnimation(ModernTheme.Animation.quick) {
-                            isPressed = false
-                        }
-                    }
-            )
-            
-            // Menu options
+
+            // Context menu
             if showMenu {
-                VStack(spacing: 0) {
-                    MenuOption(
+                CardMenu(options: [
+                    MenuOptionData(
                         icon: "arrow.uturn.backward.circle",
                         title: "Reactivate",
                         color: ModernTheme.Color.accent,
                         action: onReactivate
-                    )
-                    
-                    ModernDivider()
-                        .padding(.horizontal, ModernTheme.Spacing.md)
-                        .padding(.vertical, ModernTheme.Spacing.xs)
-                    
-                    MenuOption(
+                    ),
+                    MenuOptionData(
                         icon: "trash",
                         title: "Delete Permanently",
                         color: ModernTheme.Color.error,
-                        action: onDelete
+                        action: onDelete,
+                        showDivider: true
                     )
-                }
-                .padding(.vertical, ModernTheme.Spacing.xs)
-                .background(
-                    RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                        .fill(ModernTheme.Color.pureWhite)
-                        .shadow(
-                            color: ModernTheme.Shadow.subtle.color,
-                            radius: ModernTheme.Shadow.subtle.radius,
-                            x: 0,
-                            y: ModernTheme.Shadow.subtle.y
-                        )
-                )
+                ])
                 .padding(.top, ModernTheme.Spacing.xs)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity),
-                    removal: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity)
-                ))
             }
         }
     }

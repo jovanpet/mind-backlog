@@ -12,14 +12,14 @@ struct ClarifyProblemView: View {
         NavigationStack {
             ZStack {
                 // Clean white background
-                ModernTheme.Color.pureWhite
+                ModernTheme.Color.background
                     .ignoresSafeArea()
                 
                 // Subtle pattern background
                 GeometryReader { geometry in
                     ForEach(0..<20, id: \.self) { index in
                         Circle()
-                            .fill(ModernTheme.Color.lightGray.opacity(0.3))
+                            .fill(ModernTheme.Color.surfaceSecondary.opacity(0.3))
                             .frame(width: 100, height: 100)
                             .position(
                                 x: CGFloat.random(in: 0...geometry.size.width),
@@ -39,10 +39,7 @@ struct ClarifyProblemView: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [
-                                            ModernTheme.Color.accent.opacity(0.1),
-                                            ModernTheme.Color.accentLight.opacity(0.05)
-                                        ],
+                                        colors: [ModernTheme.Color.accent, ModernTheme.Color.accentSecondary],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -61,21 +58,21 @@ struct ClarifyProblemView: View {
                         VStack(spacing: ModernTheme.Spacing.md) {
                             Text("About:")
                                 .font(ModernTheme.Font.caption)
-                                .foregroundColor(ModernTheme.Color.textGray)
+                                .foregroundColor(ModernTheme.Color.textSecondary)
                                 .textCase(.uppercase)
                                 .tracking(1.5)
                                 .opacity(isVisible ? 1 : 0)
                                 .offset(y: isVisible ? 0 : 20)
                                 .animation(.easeInOut(duration: 0.4).delay(0.1), value: isVisible)
                             
-                            ModernDivider()
+                            StyledDivider()
                                 .frame(width: 60)
                                 .opacity(isVisible ? 1 : 0)
                                 .animation(.easeInOut(duration: 0.4).delay(0.1), value: isVisible)
                             
                             Text("Can you solve this\nproblem right now?")
                                 .font(ModernTheme.Font.headline)
-                                .foregroundColor(ModernTheme.Color.darkGray)
+                                .foregroundColor(ModernTheme.Color.textPrimary)
                                 .multilineTextAlignment(.center)
                                 .opacity(isVisible ? 1 : 0)
                                 .offset(y: isVisible ? 0 : 20)
@@ -101,19 +98,19 @@ struct ClarifyProblemView: View {
                                     Spacer()
                                     Image(systemName: "arrow.right")
                                         .font(.system(size: 14))
-                                        .foregroundColor(ModernTheme.Color.textGray)
+                                        .foregroundColor(ModernTheme.Color.textSecondary)
                                 }
                                 .padding(ModernTheme.Spacing.lg)
                                 .frame(maxWidth: .infinity)
                                 .background(
                                     RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
-                                        .fill(selectedOption == 1 ? ModernTheme.Color.accent.opacity(0.1) : ModernTheme.Color.lightGray)
+                                        .fill(selectedOption == 1 ? ModernTheme.Color.accent.opacity(0.1) : ModernTheme.Color.surfaceSecondary)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
                                                 .stroke(selectedOption == 1 ? ModernTheme.Color.accent : Color.clear, lineWidth: 2)
                                         )
                                 )
-                                .foregroundColor(ModernTheme.Color.pureBlack)
+                                .foregroundColor(ModernTheme.Color.textPrimary)
                             }
                             .buttonStyle(PlainButtonStyle())
                             .scaleEffect(selectedOption == 1 ? 1.02 : 1.0)
@@ -137,19 +134,19 @@ struct ClarifyProblemView: View {
                                     Spacer()
                                     Image(systemName: "arrow.right")
                                         .font(.system(size: 14))
-                                        .foregroundColor(ModernTheme.Color.textGray)
+                                        .foregroundColor(ModernTheme.Color.textSecondary)
                                 }
                                 .padding(ModernTheme.Spacing.lg)
                                 .frame(maxWidth: .infinity)
                                 .background(
                                     RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
-                                        .fill(selectedOption == 2 ? ModernTheme.Color.warning.opacity(0.1) : ModernTheme.Color.lightGray)
+                                        .fill(selectedOption == 2 ? ModernTheme.Color.warning.opacity(0.1) : ModernTheme.Color.surfaceSecondary)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.large)
                                                 .stroke(selectedOption == 2 ? ModernTheme.Color.warning : Color.clear, lineWidth: 2)
                                         )
                                 )
-                                .foregroundColor(ModernTheme.Color.pureBlack)
+                                .foregroundColor(ModernTheme.Color.textPrimary)
                             }
                             .buttonStyle(PlainButtonStyle())
                             .scaleEffect(selectedOption == 2 ? 1.02 : 1.0)

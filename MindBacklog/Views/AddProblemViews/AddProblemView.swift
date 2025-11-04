@@ -12,16 +12,9 @@ struct AddProblemView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        ModernTheme.Color.offWhite
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Background
+                ModernTheme.Color.background
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     Spacer()
@@ -36,18 +29,12 @@ struct AddProblemView: View {
                         VStack(spacing: ModernTheme.Spacing.sm) {
                             Text("What's on your")
                                 .font(ModernTheme.Font.largeTitle)
-                                .foregroundColor(ModernTheme.Color.pureBlack)
+                                .foregroundColor(ModernTheme.Color.textPrimary)
                                 .fadeInAnimation(delay: 0.1)
-                            
+
                             Text("mind?")
                                 .font(.system(size: 36, weight: .bold, design: .default))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [ModernTheme.Color.accent, ModernTheme.Color.accentLight],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
+                                .foregroundStyle(ModernTheme.Color.accent)
                                 .fadeInAnimation(delay: 0.2)
                         }
                         

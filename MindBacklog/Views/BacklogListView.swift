@@ -42,64 +42,26 @@ struct BacklogListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Subtle gradient background
-                LinearGradient(
-                    colors: [
-                        ModernTheme.Color.offWhite,
-                        ModernTheme.Color.pureWhite
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-                
-                // Decorative background elements
-                GeometryReader { geometry in
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    ModernTheme.Color.accent.opacity(0.05),
-                                    ModernTheme.Color.accentLight.opacity(0.02)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 300, height: 300)
-                        .blur(radius: 60)
-                        .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.2)
-                }
-                .ignoresSafeArea()
-
+                // Background
+                ModernTheme.Color.background
+                    .ignoresSafeArea()
                 if viewModel.backlog.isEmpty {
-                    ModernEmptyState(
+                    EmptyStateView(
                         icon: "📦",
                         title: "Backlog is Empty",
                         message: "Problems you can't solve yet will appear here for future reference"
                     )
                 } else {
-                    VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
                         // Header Section
                         VStack(alignment: .leading, spacing: ModernTheme.Spacing.md) {
                             // Title and count
-                            HStack(alignment: .bottom) {
-                                VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                                    Text("Backlog")
-                                        .font(.system(size: 42, weight: .bold, design: .default))
-                                        .foregroundColor(ModernTheme.Color.pureBlack)
-                                    
-                                    HStack(spacing: ModernTheme.Spacing.xs) {
-                                        Image(systemName: "archivebox.fill")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(ModernTheme.Color.textGray)
-                                        Text("\(viewModel.backlog.count) item\(viewModel.backlog.count == 1 ? "" : "s") stored")
-                                            .font(ModernTheme.Font.callout)
-                                            .foregroundColor(ModernTheme.Color.textGray)
-                                    }
-                                }
-                                Spacer()
-                            }
+                            SectionHeader(
+                                title: "Backlog",
+                                subtitle: "\(viewModel.backlog.count) item\(viewModel.backlog.count == 1 ? "" : "s") stored",
+                                icon: "archivebox.fill",
+                                iconColor: ModernTheme.Color.textSecondary
+                            )
                             .padding(.horizontal, ModernTheme.Spacing.lg)
                             .fadeInAnimation()
                         }
@@ -108,19 +70,19 @@ struct BacklogListView: View {
                         
                         // Cards List
                         ScrollView(.vertical, showsIndicators: false) {
-                            LazyVStack(spacing: ModernTheme.Spacing.sm) {
+                            VStack(spacing: ModernTheme.Spacing.sm) {
                                 if filteredAndSortedItems.isEmpty {
                                     // No search results
                                     VStack(spacing: ModernTheme.Spacing.md) {
                                         Image(systemName: "magnifyingglass")
                                             .font(.system(size: 48))
-                                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.5))
+                                            .foregroundColor(ModernTheme.Color.textSecondary.opacity(0.5))
                                         Text("No items found")
                                             .font(ModernTheme.Font.headline)
-                                            .foregroundColor(ModernTheme.Color.textGray)
+                                            .foregroundColor(ModernTheme.Color.textSecondary)
                                         Text("Try a different search term")
                                             .font(ModernTheme.Font.caption)
-                                            .foregroundColor(ModernTheme.Color.textGray.opacity(0.8))
+                                            .foregroundColor(ModernTheme.Color.textSecondary.opacity(0.8))
                                     }
                                     .padding(.vertical, ModernTheme.Spacing.xxxl)
                                     .frame(maxWidth: .infinity)
@@ -143,7 +105,7 @@ struct BacklogListView: View {
                                             },
                                             onMoveToActive: {
                                                 withAnimation(ModernTheme.Animation.smooth) {
-                                                    viewModel.updateProblemStatusToActive(item.id)
+                                                    viewModel.updateProblemStatus(item.id, to: .active)
                                                 }
                                             },
                                             onDelete: {
@@ -166,7 +128,6 @@ struct BacklogListView: View {
                     }
                 }
             }
-            .navigationBarHidden(true)
             .toolbar(.visible, for: .tabBar)
         }
     }
@@ -183,7 +144,6 @@ struct BacklogCard: View {
     let onMoveToActive: () -> Void
     let onDelete: () -> Void
     
-    @State private var isPressed = false
     @State private var showDetails = false
     
     var daysSinceCreated: Int {
@@ -192,63 +152,25 @@ struct BacklogCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: ModernTheme.Spacing.md) {
-                // Status indicator
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                ModernTheme.Color.textGray.opacity(0.3),
-                                ModernTheme.Color.textGray.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 8, height: 8)
-                    .padding(.top, 8)
-                
+            HStack(alignment: .top, spacing: ModernTheme.Spacing.md) {                
                 // Content
                 VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
                     // Title with search highlighting
                     if searchText.isEmpty {
                         Text(item.problem)
                             .font(ModernTheme.Font.headline)
-                            .foregroundColor(ModernTheme.Color.pureBlack)
+                            .foregroundColor(ModernTheme.Color.textPrimary)
                     } else {
                         HighlightedText(text: item.problem, searchText: searchText)
                             .font(ModernTheme.Font.headline)
                     }
                     
                     // Metadata
-                    HStack(spacing: ModernTheme.Spacing.md) {
-                        // Time in backlog
-                        HStack(spacing: ModernTheme.Spacing.xxs) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 11))
-                            Text(daysSinceCreated == 0 ? "Added today" : "\(daysSinceCreated) day\(daysSinceCreated == 1 ? "" : "s") ago")
-                                .font(ModernTheme.Font.caption)
-                        }
-                        .foregroundColor(ModernTheme.Color.textGray)
-                    }
+                    TimeBadge(date: item.createdAt, prefix: "Added ")
                     
                     // Tasks preview or expanded list
-                    if isSelected {
-                        TaskList(for: item)
-                            .padding(.top, ModernTheme.Spacing.sm)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                            .animation(ModernTheme.Animation.smooth, value: isSelected)
-                    } else if let firstTask = item.tasks.first {
-                        HStack(spacing: ModernTheme.Spacing.xs) {
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(ModernTheme.Color.accent)
-                            Text("Next: \(firstTask.task)")
-                                .font(ModernTheme.Font.caption)
-                                .foregroundColor(ModernTheme.Color.textGray)
-                                .lineLimit(1)
-                        }
-                    }
+                    TaskList(tasks: item.tasks, isExpanded: isSelected)
+                        .padding(.top, ModernTheme.Spacing.sm)
                 }
                 
                 Spacer()
@@ -256,30 +178,18 @@ struct BacklogCard: View {
                 // Action buttons
                 HStack(spacing: ModernTheme.Spacing.xs) {
                     // Menu button (no quick activate)
-                    Button(action: onMenuTap) {
-                        ZStack {
-                            Circle()
-                                .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
-                                .frame(width: 44, height: 44) // larger hit area
-                            Image(systemName: showMenu ? "xmark" : "ellipsis")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(ModernTheme.Color.darkGray)
-                                .rotationEffect(.degrees(showMenu ? 90 : 0))
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .contentShape(Rectangle()) // ensure full area is tappable
+                    MenuButton(isMenuOpen: showMenu, action: onMenuTap)
                 }
             }
             .padding(ModernTheme.Spacing.md)
             .background(
                 RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                    .fill(ModernTheme.Color.pureWhite)
+                    .fill(ModernTheme.Color.cardBackground)
                     .shadow(
-                        color: isPressed ? ModernTheme.Shadow.subtle.color : (isSelected ? ModernTheme.Shadow.medium.color : ModernTheme.Shadow.subtle.color),
-                        radius: isPressed ? ModernTheme.Shadow.subtle.radius : (isSelected ? ModernTheme.Shadow.medium.radius : ModernTheme.Shadow.subtle.radius),
+                        color: ModernTheme.Color.shadow,
+                        radius: isSelected ? ModernTheme.Shadow.medium.radius : ModernTheme.Shadow.small.radius,
                         x: 0,
-                        y: isPressed ? 1 : (isSelected ? ModernTheme.Shadow.medium.y : ModernTheme.Shadow.subtle.y)
+                        y: isSelected ? ModernTheme.Shadow.medium.y : ModernTheme.Shadow.small.y
                     )
             )
             .overlay(
@@ -289,92 +199,35 @@ struct BacklogCard: View {
                         lineWidth: 1.5
                     )
             )
-            .scaleEffect(isPressed ? 0.98 : 1.0)
             .onTapGesture {
                 withAnimation(ModernTheme.Animation.smooth) {
                     onTap()
                 }
             }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        withAnimation(ModernTheme.Animation.quick) {
-                            isPressed = true
-                        }
-                    }
-                    .onEnded { _ in
-                        withAnimation(ModernTheme.Animation.quick) {
-                            isPressed = false
-                        }
-                    }
-            )
             
-            // Context menu - vertically stacked MenuOption(s)
+            // Context menu
             if showMenu {
-                VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-                    MenuOption(
+                CardMenu(options: [
+                    MenuOptionData(
                         icon: "play.fill",
                         title: "Activate",
                         color: ModernTheme.Color.accent,
-                        action: {
-                            onMoveToActive()
-                        }
-                    )
-                    MenuOption(
+                        action: onMoveToActive
+                    ),
+                    MenuOptionData(
                         icon: "trash",
                         title: "Delete",
                         color: ModernTheme.Color.error,
-                        action: {
-                            onDelete()
-                        }
+                        action: onDelete
                     )
-                }
+                ])
                 .padding(.top, ModernTheme.Spacing.xs)
-                .transition(.asymmetric(
-                    insertion: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity),
-                    removal: .scale(scale: 0.8, anchor: .topTrailing).combined(with: .opacity)
-                ))
             }
         }
     }
 }
 
-// MARK: - Task List for Backlog Card
-@ViewBuilder
-private func TaskList(for item: ProblemItem) -> some View {
-    VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
-        ForEach(item.tasks) { task in
-            HStack(spacing: ModernTheme.Spacing.xs) {
-                Image(systemName: task.isDone ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(task.isDone ? ModernTheme.Color.success : ModernTheme.Color.textGray)
-                Text(task.task)
-                    .font(ModernTheme.Font.caption)
-                    .foregroundColor(ModernTheme.Color.textGray)
-                    .strikethrough(task.isDone, color: .gray)
-            }
-        }
-    }
-}
 
-// MARK: - Highlighted Text Component
-struct HighlightedText: View {
-    let text: String
-    let searchText: String
-    
-    var body: some View {
-        let parts = text.components(separatedBy: searchText)
-        let result = parts.reduce(Text("")) { partialResult, part in
-            if partialResult == Text("") {
-                return Text(part)
-            } else {
-                return partialResult + Text(searchText)
-                    .fontWeight(.semibold)
-                    .foregroundColor(ModernTheme.Color.accent) + Text(part)
-            }
-        }
-        result
-    }
-}
 
 // MARK: - Preview
 #Preview {
