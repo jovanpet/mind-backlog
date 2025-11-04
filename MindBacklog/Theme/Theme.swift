@@ -1,44 +1,59 @@
 import SwiftUI
 
+// MARK: - Modern Theme System using Asset Catalog Colors
 struct ModernTheme {
     struct Color {
-        // Core palette - clean whites and deep blacks
-        static let pureWhite = SwiftUI.Color(hex: "FFFFFF")
-        static let offWhite = SwiftUI.Color(hex: "FAFAFA")
-        static let lightGray = SwiftUI.Color(hex: "F5F5F5")
-        static let mediumGray = SwiftUI.Color(hex: "E8E8E8")
-        static let textGray = SwiftUI.Color(hex: "6B6B6B")
-        static let darkGray = SwiftUI.Color(hex: "2C2C2C")
-        static let pureBlack = SwiftUI.Color(hex: "0A0A0A")
-        
-        // Accent colors - subtle and sophisticated
-        static let accent = SwiftUI.Color(hex: "5E5CE6") // Modern purple-blue
-        static let accentLight = SwiftUI.Color(hex: "8B89F7")
-        static let success = SwiftUI.Color(hex: "34C759")
-        static let warning = SwiftUI.Color(hex: "FF9500")
-        static let error = SwiftUI.Color(hex: "FF3B30")
-        
-        // Dynamic colors for light/dark mode
+        // Core colors - defined in Assets.xcassets
         static let background = SwiftUI.Color("ModernBackground")
         static let surface = SwiftUI.Color("ModernSurface")
+        static let surfaceSecondary = SwiftUI.Color("ModernSurfaceSecondary")
+        static let surfaceTertiary = SwiftUI.Color("ModernSurfaceTertiary")
+        
+        // Text colors
         static let textPrimary = SwiftUI.Color("ModernTextPrimary")
         static let textSecondary = SwiftUI.Color("ModernTextSecondary")
-        static let divider = SwiftUI.Color("ModernDivider")
+        static let textTertiary = SwiftUI.Color("ModernTextTertiary")
+        
+        // Accent colors
+        static let accent = SwiftUI.Color("ModernAccent")
+        static let accentSecondary = SwiftUI.Color("ModernAccentSecondary")
+        static let accentTertiary = SwiftUI.Color("ModernAccentTertiary")
+        
+        // System colors
+        static let success = SwiftUI.Color("ModernSuccess")
+        static let warning = SwiftUI.Color("ModernWarning")
+        static let error = SwiftUI.Color("ModernError")
+        static let info = SwiftUI.Color("ModernInfo")
+        
+        // UI Element colors
+        static let separator = SwiftUI.Color("ModernSeparator")
+        static let inputBackground = SwiftUI.Color("ModernInputBackground")
+        static let inputBorder = SwiftUI.Color("ModernInputBorder")
+        static let cardBackground = SwiftUI.Color("ModernCardBackground")
+        static let elevatedBackground = SwiftUI.Color("ModernElevatedBackground")
+        
+        // Shadow color (can use system shadow or custom)
+        static let shadow = SwiftUI.Color.black.opacity(0.1)
+        static let shadowDark = SwiftUI.Color.black.opacity(0.3)
     }
     
     struct Font {
-        // Modern font stack with SF Pro Display for that premium feel
+        // Clean, modern font hierarchy
         static let largeTitle = SwiftUI.Font.system(size: 34, weight: .bold, design: .default)
         static let title = SwiftUI.Font.system(size: 28, weight: .semibold, design: .default)
-        static let headline = SwiftUI.Font.system(size: 22, weight: .medium, design: .default)
+        static let title2 = SwiftUI.Font.system(size: 24, weight: .semibold, design: .default)
+        static let headline = SwiftUI.Font.system(size: 20, weight: .medium, design: .default)
         static let body = SwiftUI.Font.system(size: 17, weight: .regular, design: .default)
         static let callout = SwiftUI.Font.system(size: 16, weight: .regular, design: .default)
-        static let caption = SwiftUI.Font.system(size: 14, weight: .regular, design: .default)
-        static let small = SwiftUI.Font.system(size: 12, weight: .regular, design: .default)
+        static let subheadline = SwiftUI.Font.system(size: 15, weight: .regular, design: .default)
+        static let footnote = SwiftUI.Font.system(size: 13, weight: .regular, design: .default)
+        static let caption = SwiftUI.Font.system(size: 12, weight: .regular, design: .default)
         
-        // Special fonts for UI elements
+        // Special purpose fonts
         static let button = SwiftUI.Font.system(size: 17, weight: .medium, design: .default)
+        static let buttonSmall = SwiftUI.Font.system(size: 15, weight: .medium, design: .default)
         static let input = SwiftUI.Font.system(size: 16, weight: .regular, design: .default)
+        static let mono = SwiftUI.Font.system(size: 14, weight: .regular, design: .monospaced)
     }
     
     struct Spacing {
@@ -57,161 +72,160 @@ struct ModernTheme {
         static let medium: CGFloat = 12
         static let large: CGFloat = 16
         static let xlarge: CGFloat = 24
+        static let xxlarge: CGFloat = 32
         static let round: CGFloat = 999
     }
     
-    struct Shadow {
-        static let subtle = (color: SwiftUI.Color.black.opacity(0.04), radius: CGFloat(8), x: CGFloat(0), y: CGFloat(2))
-        static let medium = (color: SwiftUI.Color.black.opacity(0.08), radius: CGFloat(16), x: CGFloat(0), y: CGFloat(4))
-        static let strong = (color: SwiftUI.Color.black.opacity(0.12), radius: CGFloat(24), x: CGFloat(0), y: CGFloat(8))
-        static let glow = (color: ModernTheme.Color.accent.opacity(0.3), radius: CGFloat(20), x: CGFloat(0), y: CGFloat(0))
-    }
-    
     struct Animation {
+        static let instant = SwiftUI.Animation.easeInOut(duration: 0.1)
         static let quick = SwiftUI.Animation.easeInOut(duration: 0.2)
         static let smooth = SwiftUI.Animation.easeInOut(duration: 0.3)
         static let gentle = SwiftUI.Animation.easeInOut(duration: 0.4)
+        static let slow = SwiftUI.Animation.easeInOut(duration: 0.6)
         static let spring = SwiftUI.Animation.spring(response: 0.4, dampingFraction: 0.75)
         static let bounce = SwiftUI.Animation.spring(response: 0.5, dampingFraction: 0.6)
         static let elastic = SwiftUI.Animation.interpolatingSpring(stiffness: 200, damping: 15)
     }
-}
-
-// MARK: - Color Extension
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3:
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6:
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8:
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (1, 1, 1, 0)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
+    
+    struct Shadow {
+        static let small = (radius: CGFloat(4), x: CGFloat(0), y: CGFloat(2))
+        static let medium = (radius: CGFloat(8), x: CGFloat(0), y: CGFloat(4))
+        static let large = (radius: CGFloat(16), x: CGFloat(0), y: CGFloat(8))
+        static let xlarge = (radius: CGFloat(24), x: CGFloat(0), y: CGFloat(12))
+        static let glow = (radius: CGFloat(20), x: CGFloat(0), y: CGFloat(0))
     }
 }
 
 // MARK: - Modern View Modifiers
 
-struct ModernCard: ViewModifier {
+struct ModernCardModifier: ViewModifier {
+    @Environment(\.colorScheme) var colorScheme
     var isPressed: Bool = false
+    var elevation: CardElevation = .medium
+    
+    enum CardElevation {
+        case low, medium, high
+        
+        var shadow: (radius: CGFloat, x: CGFloat, y: CGFloat) {
+            switch self {
+            case .low: return ModernTheme.Shadow.small
+            case .medium: return ModernTheme.Shadow.medium
+            case .high: return ModernTheme.Shadow.large
+            }
+        }
+    }
     
     func body(content: Content) -> some View {
         content
-            .background(ModernTheme.Color.pureWhite)
+            .background(ModernTheme.Color.cardBackground)
             .cornerRadius(ModernTheme.CornerRadius.large)
             .shadow(
-                color: isPressed ? ModernTheme.Shadow.subtle.color : ModernTheme.Shadow.medium.color,
-                radius: isPressed ? ModernTheme.Shadow.subtle.radius : ModernTheme.Shadow.medium.radius,
-                x: 0,
-                y: isPressed ? 1 : ModernTheme.Shadow.medium.y
+                color: colorScheme == .dark ? ModernTheme.Color.shadowDark : ModernTheme.Color.shadow,
+                radius: isPressed ? elevation.shadow.radius / 2 : elevation.shadow.radius,
+                x: elevation.shadow.x,
+                y: isPressed ? elevation.shadow.y / 2 : elevation.shadow.y
             )
             .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(ModernTheme.Animation.quick, value: isPressed)
     }
 }
 
-struct ModernButton: ViewModifier {
+struct ModernButtonModifier: ViewModifier {
+    @Environment(\.colorScheme) var colorScheme
     var style: ButtonStyle = .primary
+    var size: ButtonSize = .regular
     var isPressed: Bool = false
+    var isFullWidth: Bool = false
     
     enum ButtonStyle {
-        case primary, secondary, ghost
+        case primary, secondary, tertiary, ghost, destructive, success
+        
+        var backgroundColor: Color {
+            switch self {
+            case .primary: return ModernTheme.Color.accent
+            case .secondary: return ModernTheme.Color.surfaceSecondary
+            case .tertiary: return ModernTheme.Color.surfaceTertiary
+            case .ghost: return Color.clear
+            case .destructive: return ModernTheme.Color.error
+            case .success: return ModernTheme.Color.success
+            }
+        }
+        
+        var foregroundColor: Color {
+            switch self {
+            case .primary, .destructive, .success: return .white
+            case .secondary, .tertiary: return ModernTheme.Color.textPrimary
+            case .ghost: return ModernTheme.Color.accent
+            }
+        }
+    }
+    
+    enum ButtonSize {
+        case small, regular, large
+        
+        var padding: (horizontal: CGFloat, vertical: CGFloat) {
+            switch self {
+            case .small: return (ModernTheme.Spacing.md, ModernTheme.Spacing.sm)
+            case .regular: return (ModernTheme.Spacing.lg, ModernTheme.Spacing.md)
+            case .large: return (ModernTheme.Spacing.xl, ModernTheme.Spacing.lg)
+            }
+        }
+        
+        var font: Font {
+            switch self {
+            case .small: return ModernTheme.Font.buttonSmall
+            case .regular, .large: return ModernTheme.Font.button
+            }
+        }
     }
     
     func body(content: Content) -> some View {
         content
-            .font(ModernTheme.Font.button)
-            .padding(.horizontal, ModernTheme.Spacing.lg)
-            .padding(.vertical, ModernTheme.Spacing.md)
-            .background(backgroundColor)
-            .foregroundColor(foregroundColor)
+            .font(size.font)
+            .padding(.horizontal, size.padding.horizontal)
+            .padding(.vertical, size.padding.vertical)
+            .frame(maxWidth: isFullWidth ? .infinity : nil)
+            .background(style.backgroundColor)
+            .foregroundColor(style.foregroundColor)
             .cornerRadius(ModernTheme.CornerRadius.round)
             .scaleEffect(isPressed ? 0.95 : 1.0)
-            .shadow(
-                color: shadowColor,
-                radius: isPressed ? 2 : 8,
-                x: 0,
-                y: isPressed ? 1 : 4
-            )
-    }
-    
-    private var backgroundColor: Color {
-        switch style {
-        case .primary:
-            return ModernTheme.Color.pureBlack
-        case .secondary:
-            return ModernTheme.Color.lightGray
-        case .ghost:
-            return Color.clear
-        }
-    }
-    
-    private var foregroundColor: Color {
-        switch style {
-        case .primary:
-            return ModernTheme.Color.pureWhite
-        case .secondary:
-            return ModernTheme.Color.pureBlack
-        case .ghost:
-            return ModernTheme.Color.darkGray
-        }
-    }
-    
-    private var shadowColor: Color {
-        switch style {
-        case .primary:
-            return ModernTheme.Color.pureBlack.opacity(0.2)
-        case .secondary:
-            return ModernTheme.Color.pureBlack.opacity(0.08)
-        case .ghost:
-            return Color.clear
-        }
+            .opacity(isPressed ? 0.9 : 1.0)
+            .animation(ModernTheme.Animation.quick, value: isPressed)
     }
 }
 
-struct ModernTextField: ViewModifier {
+struct ModernTextFieldModifier: ViewModifier {
     @FocusState private var isFocused: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     func body(content: Content) -> some View {
         content
             .font(ModernTheme.Font.input)
             .padding(ModernTheme.Spacing.md)
-            .background(
+            .background(ModernTheme.Color.inputBackground)
+            .overlay(
                 RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                    .fill(ModernTheme.Color.lightGray)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ModernTheme.CornerRadius.medium)
-                            .stroke(
-                                isFocused ? ModernTheme.Color.accent : Color.clear,
-                                lineWidth: 2
-                            )
+                    .stroke(
+                        isFocused ? ModernTheme.Color.accent : ModernTheme.Color.inputBorder,
+                        lineWidth: isFocused ? 2 : 1
                     )
             )
+            .cornerRadius(ModernTheme.CornerRadius.medium)
             .focused($isFocused)
             .animation(ModernTheme.Animation.quick, value: isFocused)
     }
 }
 
-struct FloatingAnimation: ViewModifier {
+// MARK: - Animation Modifiers
+
+struct FloatingAnimationModifier: ViewModifier {
     @State private var isAnimating = false
     var delay: Double = 0
+    var distance: CGFloat = 8
     
     func body(content: Content) -> some View {
         content
-            .offset(y: isAnimating ? -8 : 8)
+            .offset(y: isAnimating ? -distance : distance)
             .animation(
                 Animation.easeInOut(duration: 2)
                     .repeatForever(autoreverses: true)
@@ -224,16 +238,17 @@ struct FloatingAnimation: ViewModifier {
     }
 }
 
-struct FadeInAnimation: ViewModifier {
+struct FadeInAnimationModifier: ViewModifier {
     @State private var isVisible = false
     var delay: Double = 0
+    var duration: Double = 0.4
     
     func body(content: Content) -> some View {
         content
             .opacity(isVisible ? 1 : 0)
             .offset(y: isVisible ? 0 : 20)
             .animation(
-                ModernTheme.Animation.gentle.delay(delay),
+                Animation.easeOut(duration: duration).delay(delay),
                 value: isVisible
             )
             .onAppear {
@@ -242,38 +257,64 @@ struct FadeInAnimation: ViewModifier {
     }
 }
 
-// MARK: - View Extensions
-
-extension View {
-    func modernCard(isPressed: Bool = false) -> some View {
-        self.modifier(ModernCard(isPressed: isPressed))
-    }
+struct PulseAnimationModifier: ViewModifier {
+    @State private var isPulsing = false
+    var delay: Double = 0
     
-    func modernButton(style: ModernButton.ButtonStyle = .primary, isPressed: Bool = false) -> some View {
-        self.modifier(ModernButton(style: style, isPressed: isPressed))
-    }
-    
-    func modernTextField() -> some View {
-        self.modifier(ModernTextField())
-    }
-    
-    func floatingAnimation(delay: Double = 0) -> some View {
-        self.modifier(FloatingAnimation(delay: delay))
-    }
-    
-    func fadeInAnimation(delay: Double = 0) -> some View {
-        self.modifier(FadeInAnimation(delay: delay))
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(isPulsing ? 1.05 : 1.0)
+            .opacity(isPulsing ? 0.8 : 1.0)
+            .animation(
+                Animation.easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay),
+                value: isPulsing
+            )
+            .onAppear {
+                isPulsing = true
+            }
     }
 }
 
-// MARK: - Custom Components
+
+extension View {
+    func modernCard(isPressed: Bool = false, elevation: ModernCardModifier.CardElevation = .medium) -> some View {
+        self.modifier(ModernCardModifier(isPressed: isPressed, elevation: elevation))
+    }
+    
+    func modernButton(
+        style: ModernButtonModifier.ButtonStyle = .primary,
+        size: ModernButtonModifier.ButtonSize = .regular,
+        isPressed: Bool = false,
+        isFullWidth: Bool = false
+    ) -> some View {
+        self.modifier(ModernButtonModifier(style: style, size: size, isPressed: isPressed, isFullWidth: isFullWidth))
+    }
+    
+    func modernTextField() -> some View {
+        self.modifier(ModernTextFieldModifier())
+    }
+    
+    func floatingAnimation(delay: Double = 0, distance: CGFloat = 8) -> some View {
+        self.modifier(FloatingAnimationModifier(delay: delay, distance: distance))
+    }
+    
+    func fadeInAnimation(delay: Double = 0, duration: Double = 0.4) -> some View {
+        self.modifier(FadeInAnimationModifier(delay: delay, duration: duration))
+    }
+    
+    func pulseAnimation(delay: Double = 0) -> some View {
+        self.modifier(PulseAnimationModifier(delay: delay))
+    }
+}
+
 
 struct ModernDivider: View {
     var body: some View {
         Rectangle()
-            .fill(ModernTheme.Color.mediumGray)
+            .fill(ModernTheme.Color.separator)
             .frame(height: 1)
-            .opacity(0.5)
     }
 }
 
@@ -281,6 +322,8 @@ struct ModernEmptyState: View {
     let icon: String
     let title: String
     let message: String
+    var actionTitle: String? = nil
+    var action: (() -> Void)? = nil
     
     var body: some View {
         VStack(spacing: ModernTheme.Spacing.lg) {
@@ -290,69 +333,25 @@ struct ModernEmptyState: View {
             
             VStack(spacing: ModernTheme.Spacing.sm) {
                 Text(title)
-                    .font(ModernTheme.Font.title)
-                    .foregroundColor(ModernTheme.Color.pureBlack)
+                    .font(ModernTheme.Font.title2)
+                    .foregroundColor(ModernTheme.Color.textPrimary)
                 
                 Text(message)
                     .font(ModernTheme.Font.body)
-                    .foregroundColor(ModernTheme.Color.textGray)
+                    .foregroundColor(ModernTheme.Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            
+            if let actionTitle = actionTitle, let action = action {
+                Button(action: action) {
+                    Text(actionTitle)
+                        .modernButton(style: .primary, size: .regular)
+                }
+                .padding(.top, ModernTheme.Spacing.md)
             }
         }
         .padding(ModernTheme.Spacing.xl)
         .fadeInAnimation()
-    }
-}
-
-struct GlowingBackground: View {
-    @State private var animate = false
-    
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            ModernTheme.Color.accent.opacity(0.3),
-                            ModernTheme.Color.accent.opacity(0.1),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 50,
-                        endRadius: 200
-                    )
-                )
-                .frame(width: 400, height: 400)
-                .blur(radius: 40)
-                .offset(x: -100, y: -200)
-                .scaleEffect(animate ? 1.2 : 0.8)
-            
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            ModernTheme.Color.accentLight.opacity(0.2),
-                            ModernTheme.Color.accentLight.opacity(0.05),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 50,
-                        endRadius: 200
-                    )
-                )
-                .frame(width: 350, height: 350)
-                .blur(radius: 50)
-                .offset(x: 100, y: 200)
-                .scaleEffect(animate ? 0.9 : 1.3)
-        }
-        .animation(
-            Animation.easeInOut(duration: 8)
-                .repeatForever(autoreverses: true),
-            value: animate
-        )
-        .onAppear {
-            animate = true
-        }
     }
 }

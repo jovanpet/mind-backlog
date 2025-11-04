@@ -272,19 +272,6 @@ struct NextStepView: View {
             .navigationDestination(isPresented: $navigateToBacklogAdded) {
                 BacklogAddedView(messageType: .notSure, problemTitle: problemTitle)
             }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    isTextFieldFocused = true
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
-                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                    keyboardHeight = keyboardFrame.height / 2
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                keyboardHeight = 0
-            }
         }
     }
 
@@ -303,7 +290,6 @@ struct NextStepView: View {
             )
         }
 
-        // Haptic feedback
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
 

@@ -23,11 +23,6 @@ struct AddProblemView: View {
                 )
                 .ignoresSafeArea()
                 
-                // Subtle animated background
-                GlowingBackground()
-                    .ignoresSafeArea()
-                    .opacity(0.3)
-                
                 VStack(spacing: 0) {
                     Spacer()
                     
@@ -94,10 +89,6 @@ struct AddProblemView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
-                // Auto-focus the text field after a small delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    isTextFieldFocused = true
-                }
                 title = ""
             }
             .onDisappear {
@@ -106,3 +97,11 @@ struct AddProblemView: View {
         }
     }
 }
+
+#Preview {
+    NavigationView {
+        AddProblemView()
+            .environmentObject(ProblemItemsViewModel())
+    }
+}
+

@@ -2,51 +2,35 @@ import Foundation
 
 
 struct ProblemItemsService {
-    private let currentProblemItemsKey = "currtenProblemItems"
+    private let storageKey = "currentProblemItems"
     let defaults = UserDefaults.standard
-    
+
     func addCurrentProblemItem(_ problemItem: ProblemItem) {
-        var items: [ProblemItem] = []
-        if let data = defaults.data(forKey: currentProblemItemsKey),
-           let decoded = try? JSONDecoder().decode([ProblemItem].self, from: data) {
-            items = decoded
-        }
-        
+        var items = loadCurrentProblemItems()
         items.append(problemItem)
-        
-        if let encoded = try? JSONEncoder().encode(items) {
-            defaults.set(encoded, forKey: currentProblemItemsKey)
-        }
+        saveCurrentProblemItems(items)
     }
-    
+
     func removeCurrentProblemItem(at id: UUID) {
-        var items: [ProblemItem] = []
-        if let data = defaults.data(forKey: currentProblemItemsKey),
-           let decoded = try? JSONDecoder().decode([ProblemItem].self, from: data) {
-            items = decoded
-        }
-        
-        if let index = items.firstIndex(of: items.first(where: { $0.id == id })!) {
+        var items = loadCurrentProblemItems()
+        if let index = items.firstIndex(where: { $0.id == id }) {
             items.remove(at: index)
-        }
-        
-        if let encoded = try? JSONEncoder().encode(items) {
-            defaults.set(encoded, forKey: currentProblemItemsKey)
+            saveCurrentProblemItems(items)
         }
     }
-    
+
     func loadCurrentProblemItems() -> [ProblemItem] {
-        var items: [ProblemItem] = []
-        if let data = defaults.data(forKey: currentProblemItemsKey),
+        if let data = defaults.data(forKey: storageKey),
            let decoded = try? JSONDecoder().decode([ProblemItem].self, from: data) {
-            items = decoded
+            return decoded
         }
-        return items
+
+        return []
     }
-    
+
     func saveCurrentProblemItems(_ items: [ProblemItem]) {
         if let encoded = try? JSONEncoder().encode(items) {
-            defaults.set(encoded, forKey: currentProblemItemsKey)
+            defaults.set(encoded, forKey: storageKey)
         }
     }
 }

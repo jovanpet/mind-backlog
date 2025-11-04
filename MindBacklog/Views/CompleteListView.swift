@@ -239,20 +239,20 @@ struct CompletedCard: View {
                     
                     Spacer()
                     
-                    // Menu button
+                    // Menu button (enlarged tappable area)
                     Button(action: onMenuTap) {
                         ZStack {
                             Circle()
                                 .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
-                                .frame(width: 36, height: 36)
-                            
+                                .frame(width: 44, height: 44) // larger tap area
                             Image(systemName: showMenu ? "xmark" : "ellipsis")
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(ModernTheme.Color.darkGray)
                                 .rotationEffect(.degrees(showMenu ? 90 : 0))
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .contentShape(Rectangle()) // ensures the whole frame is tappable
                 }
             }
             .padding(ModernTheme.Spacing.lg)

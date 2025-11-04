@@ -1,8 +1,7 @@
 import SwiftUI
+import UserNotifications
 
-struct MainTabView: View {
-    @StateObject var viewModel = ProblemItemsViewModel()
-    
+struct MainTabView: View {    
     var body: some View {
         TabView {
             AddProblemView()
@@ -13,8 +12,9 @@ struct MainTabView: View {
                 .tabItem { Label("Backlog", systemImage: "clock") }
             CompleteListView()
                 .tabItem { Label("Completed", systemImage: "checkmark.circle") }
+            //ReflectView()
+            //    .tabItem { Label("Reflect", systemImage: "figure.wave") }
         }
-        .environmentObject(viewModel)
     }
 }
 

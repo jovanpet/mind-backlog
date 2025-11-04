@@ -28,7 +28,6 @@ struct IssuesView: View {
                         message: "Add or move problems here when you're ready to take action"
                     )
                 } else {
-                    ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: ModernTheme.Spacing.lg) {
                             // Header section
                             VStack(alignment: .leading, spacing: ModernTheme.Spacing.xs) {
@@ -50,6 +49,8 @@ struct IssuesView: View {
                             .fadeInAnimation()
                             
                             // Cards section
+                            ScrollView(.vertical, showsIndicators: false) {
+
                             VStack(spacing: ModernTheme.Spacing.md) {
                                 ForEach(Array(viewModel.active.enumerated()), id: \.element.id) { index, item in
                                     ActiveCard(
@@ -150,15 +151,15 @@ struct ActiveCard: View {
                         ZStack {
                             Circle()
                                 .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
-                                .frame(width: 36, height: 36)
-
+                                .frame(width: 44, height: 44) // increased hit area
                             Image(systemName: showMenu ? "xmark" : "ellipsis")
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(ModernTheme.Color.darkGray)
                                 .rotationEffect(.degrees(showMenu ? 90 : 0))
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .contentShape(Rectangle()) // ensures the full area is tappable
                 }
 
             }

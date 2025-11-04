@@ -257,17 +257,18 @@ struct BacklogCard: View {
                 HStack(spacing: ModernTheme.Spacing.xs) {
                     // Menu button (no quick activate)
                     Button(action: onMenuTap) {
-                        Image(systemName: showMenu ? "xmark" : "ellipsis")
-                            .font(.system(size: 14))
-                            .foregroundColor(ModernTheme.Color.darkGray)
-                            .frame(width: 32, height: 32)
-                            .background(
-                                Circle()
-                                    .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
-                            )
-                            .rotationEffect(.degrees(showMenu ? 90 : 0))
+                        ZStack {
+                            Circle()
+                                .fill(showMenu ? ModernTheme.Color.lightGray : Color.clear)
+                                .frame(width: 44, height: 44) // larger hit area
+                            Image(systemName: showMenu ? "xmark" : "ellipsis")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(ModernTheme.Color.darkGray)
+                                .rotationEffect(.degrees(showMenu ? 90 : 0))
+                        }
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .contentShape(Rectangle()) // ensure full area is tappable
                 }
             }
             .padding(ModernTheme.Spacing.md)
